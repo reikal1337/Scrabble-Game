@@ -14,6 +14,7 @@ public class Coordinates {
     public Coordinates(int row, int col) {
         rows.add(row);
         cols.add(col);
+
     }
 
     public Coordinates(int[] rows, int[] cols) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+
 public class Board {
 
     private static final int DIM = 15;
@@ -12,11 +13,11 @@ public class Board {
     private static final String LINE = "---+---+---+---+---+---+---+---+---+---+---+---+---+---+---";
    // private static final String DELIM = "     ";
 
-    private static Coordinates DarkRedX3;//8tiles
-    private static Coordinates PaleRedX2;//16tiles
-    private ArrayList<Integer> StartX2;//1tile
-    private static Coordinates DarkBlueX3;//12iles
-    private static Coordinates PaleBlueX2;//24tiles
+    private static ArrayList<Integer> DarkRedX3;//8tiles
+    private static ArrayList<Integer> PaleRedX2;//16tiles
+    private int StartX2;//1tile
+    private static ArrayList<Integer> DarkBlueX3;//12iles
+    private static ArrayList<Integer> PaleBlueX2;//24tiles
 
     //Testing atrr
     public static final String RESET = "\u001B[0m";
@@ -31,38 +32,31 @@ public class Board {
 
     public static void main(String[] args) {
         Board test = new Board();
-
+       // WordChecker test = new WordChecker();
+        TestChecker lol = new TestChecker();
         System.out.println(test.toString());
 
     }
     //Purley for testing,just displays special tiles to check if cords are good.
-//    public void displaySpecialTiles(){
-//        ArrayList<Integer> DarkRedRows =  DarkRedX3.getRows();
-//        ArrayList<Integer> DarkRedCols =  DarkRedX3.getCols();
-//        for(int i=0;i<DarkRedRows.size();i++){//R
-//            setField(DarkRedRows.get(i),DarkRedCols.get(i),RED+"R"+RESET);
-//        }
-//
-//        ArrayList<Integer> PaleRedRows =  PaleRedX2.getRows();
-//        ArrayList<Integer> PaleRedCols =  PaleRedX2.getCols();
-//        for(int i=0;i<PaleRedRows.size();i++){//R
-//            setField(PaleRedRows.get(i),PaleRedCols.get(i),MAGENTA+"P"+RESET);
-//        }
-//        //7 7 for star DarkBlueX3
-//        setField(7,7,BLACK+"S"+RESET);
-//
-//        ArrayList<Integer> DarkBlueRows =  DarkBlueX3.getRows();
-//        ArrayList<Integer> DarkBlueCols =  DarkBlueX3.getCols();
-//        for(int i=0;i<DarkBlueRows.size();i++){//R
-//            setField(DarkBlueRows.get(i),DarkBlueCols.get(i),BLUE+"B"+RESET);
-//        }
-//
-//        ArrayList<Integer> PaleBlueRows =  PaleBlueX2.getRows();
-//        ArrayList<Integer> PaleBlueCols =  PaleBlueX2.getCols();
-//        for(int i=0;i<PaleBlueRows.size();i++){//R
-//            setField(PaleBlueRows.get(i),PaleBlueCols.get(i),CYAN+"C"+RESET);
-//        }
-//    }
+    public void setSpecialTilesOnBoard(){
+        for(int i=0;i<DarkRedX3.size();i++){//R
+            setField(DarkRedX3.get(i),Tile.R);
+        }
+
+        for(int i=0;i<PaleRedX2.size();i++){//R
+            setField(PaleRedX2.get(i),Tile.P);
+        }
+        //7 7 for star DarkBlueX3
+        setField(StartX2,Tile.S);
+
+        for(int i=0;i<DarkBlueX3.size();i++){//R
+            setField(DarkBlueX3.get(i),Tile.B);
+        }
+
+        for(int i=0;i<PaleBlueX2.size();i++){//R
+            setField(PaleBlueX2.get(i),Tile.C);
+        }
+    }
 
     //Separator is “;”
     //Blank tiles are “0”, then you fill in your desired letter.
@@ -98,10 +92,22 @@ public class Board {
     public Tile getField(int row, int col) {
         return this.field[row][col];
     }
+
+    public Tile getField(int index) {
+        int row = coordinates(index)[0];
+        int col = coordinates(index)[1];
+        return this.field[row][col];
+    }
+
     public static void setField(int row, int col, Tile tile) {
         if(isField(row,col)) {
             field[row][col] = tile;
         }
+    }
+    public static void setField(int index, Tile tile) {
+        int row = coordinates(index)[0];
+        int col = coordinates(index)[1];
+        setField(row,col,tile);
     }
 
     public void reset() {
@@ -127,27 +133,41 @@ public class Board {
     }
 
     private void specialTiles(){
-        //0 1, 0 7, 0 14, 7 0, 7 14, 14 0, 14 7, 14 14
-        DarkRedX3 = new Coordinates(new int[]{0, 0, 0, 7, 7, 14, 14, 14},
-                new int[]{0, 7, 14, 0, 14, 0, 7, 14});
+        //0 0, 0 7, 0 14, 7 0, 7 14, 14 0, 14 7, 14 14 -8
+        DarkRedX3 = new ArrayList<Integer>();
+        Collections.addAll(DarkRedX3,index(0,0),index(0,7),index(0,14),
+                index(7,0),index(7,14),index(14,0),index(14,7),
+                index(14,14));
 
-        //1 1, 1 13, 2 2, 2 12, 3 3, 3 11, 4 4, 4 10, 10 4, 10 10, 11 3, 11 11, 12 2, 12 12, 13 1, 13 13
-        PaleRedX2 = new Coordinates(new int[]{1, 1, 2, 2, 3, 3, 4, 4, 10, 10, 11, 11, 12, 12, 13, 13},
-                new int[]{1, 13, 2, 12, 3, 11, 4, 10, 4, 10, 3, 11, 2, 12, 1, 13});
+
+        //1 1, 1 13, 2 2, 2 12, 3 3, 3 11, 4 4, 4 10, 10 4, 10 10, 11 3, 11 11, 12 2, 12 12, 13 1, 13 13 -16
+        PaleRedX2 = new ArrayList<Integer>();
+        Collections.addAll(PaleRedX2,index(1,1),index(1,13),index(2,2)
+                ,index(2,12),index(3,3),index(3,11),index(4,4)
+                ,index(4,10),index(10,4),index(10,10),index(11,3)
+                ,index(11,11),index(12,2),index(12,12),index(13,1)
+                ,index(13,13));
+
         //7 7
-        StartX2 = new ArrayList<Integer>();
-        StartX2.add(7);
-        StartX2.add(7);
+        StartX2 = index(7,7);
 
-        //1 5, 1 9, 5 1, 5 5, 5 9, 5 13, 9 1, 9 5, 9 9, 9 13, 13 5, 13 9;
-        DarkBlueX3 = new Coordinates(new int[]{1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 13, 13},
-                new int[]{5, 9, 1, 5, 9, 13, 1, 5, 9, 13, 5, 9});
+        //1 5, 1 9, 5 1, 5 5, 5 9, 5 13, 9 1, 9 5, 9 9, 9 13, 13 5, 13 9; -12
+        DarkBlueX3 = new ArrayList<Integer>();
+        Collections.addAll(DarkBlueX3,index(1,5),index(1,9),index(5,1)
+                ,index(5,5),index(5,9),index(5,13),index(9,1)
+                ,index(9,5),index(9,9),index(9,13),index(13,5)
+                ,index(13,9));
 
         //0 3, 0 11, 2 6, 2 8, 3 0, 3 7, 3 14, 6 2, 6 6, 6 8, 6 12, 7 3, 7 11, 8 2, 8 6,
-        // 8 8, 8 12, 11 0, 11 7, 11 14, 12 6, 12 8, 14 3, 14 11
-        PaleBlueX2 = new Coordinates(new int[]{0, 0, 2, 2, 3, 3, 3, 6, 6, 6, 6, 7,
-                7, 8, 8, 8, 8, 11, 11, 11, 12, 12, 14, 14},
-                new int[]{3, 11, 6, 8, 0, 7, 14, 2, 6, 8, 12, 3, 11, 2, 6, 8, 12, 0, 7, 14, 6, 8, 3, 11});
+        // 8 8, 8 12, 11 0, 11 7, 11 14, 12 6, 12 8, 14 3, 14 11 -24
+        PaleBlueX2 = new ArrayList<Integer>();
+        Collections.addAll(PaleBlueX2,index(0,3),index(0,11),index(2,6)
+                ,index(2,8),index(3,0),index(3,7),index(3,14)
+                ,index(6,2),index(6,6),index(6,8),index(6,12)
+                ,index(7,3),index(7,11),index(8,2),index(8,6)
+                ,index(8,8),index(8,12),index(11,0),index(11,7)
+                ,index(11,14),index(12,6),index(12,8),index(14,3)
+                ,index(14,11));
     }
 
     //From row and col return one number index;
@@ -155,6 +175,15 @@ public class Board {
         return row * DIM + col;
     }
 
+    private static int[] coordinates(int index) {
+        int row = index / DIM;
+        int col = index % DIM;
+        int[] result = {row,col};
+        return result;
+    }
+
+
+    //Old but working
     @Override
     public String toString() {
         String printBoard = "";
