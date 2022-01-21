@@ -3,6 +3,7 @@ package Game;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 
 
 public class Board {
@@ -19,6 +20,8 @@ public class Board {
     private static ArrayList<Integer> DarkBlueX3;//12iles
     private static ArrayList<Integer> PaleBlueX2;//24tiles
 
+    private static ArrayList<Tile> allEnums;
+
     //Testing atrr
     public static final String RESET = "\u001B[0m";
     public static final String BLACK = "\u001B[30m";
@@ -33,7 +36,7 @@ public class Board {
     public static void main(String[] args) {
         Board test = new Board();
        // WordChecker test = new WordChecker();
-        TestChecker lol = new TestChecker();
+        //TestChecker lol = new TestChecker();
         System.out.println(test.toString());
 
     }
@@ -66,8 +69,13 @@ public class Board {
         reset();
     }
 
+    public ArrayList<Tile> getbag(){
+        return this.letterBag;
+    }
+    //Fills letter bag and adds all Enums in list.
     public void fillBag(){
         letterBag = new ArrayList<Tile>();
+        allEnums = new ArrayList<Tile>();
         Collections.addAll(letterBag,Tile.A,Tile.A,Tile.A,Tile.A,Tile.A,Tile.A,Tile.A,Tile.A,Tile.A,Tile.B,
                 Tile.B,Tile.C,Tile.C,Tile.D,Tile.D,Tile.D,Tile.D,Tile.E,Tile.E,Tile.E,Tile.E,Tile.E,Tile.E
                 ,Tile.E,Tile.E,Tile.E,Tile.E,Tile.E,Tile.E,Tile.F,Tile.F,Tile.G,Tile.G,Tile.H,Tile.H,Tile.I
@@ -78,6 +86,10 @@ public class Board {
                 ,Tile.T,Tile.T,Tile.T,Tile.T,Tile.U,Tile.U,Tile.U,Tile.U,Tile.V,Tile.V,Tile.W
                 ,Tile.W,Tile.X,Tile.Y,Tile.Y,Tile.Z,Tile.BLANK,Tile.BLANK);
         Collections.shuffle(letterBag);
+
+        Collections.addAll(allEnums,Tile.A,Tile.B,Tile.C,Tile.D,Tile.E,Tile.F,Tile.G,Tile.H,Tile.I,
+                Tile.J,Tile.K,Tile.L,Tile.M,Tile.N,Tile.O,Tile.P,Tile.Q,Tile.R,Tile.S,Tile.T,Tile.U,
+                Tile.V,Tile.W,Tile.X,Tile.Y,Tile.Z,Tile.BLANK,Tile.EMPTY);
 
 //        Collections.addAll(letterBag,"a","a","a","a","a","a","a","a","a","b","b","c","c","d","d","d","d","e"
 //                ,"e","e","e","e","e","e","e","e","e","e","e","f","f","g","g","h","h","i","i","i","i","i","i","i","i"
@@ -109,9 +121,86 @@ public class Board {
         int col = coordinates(index)[1];
         setField(row,col,tile);
     }
+    //need check if move is legal
+    public void setMove(int row,int col,Tile[] letters,String dir){
+        if(dir.toLowerCase().equals("hor")){
+            setMoveHor(row,col,letters);
+        }else if(dir.toLowerCase().equals("ver")){
+            setMoveVer(row,col,letters);
+        }
+    }
+    //to be extended,rn only checks if empty;
+    private boolean moveHorLegal(int row,int col,int size){
+        int count = size+col;
+        for(int i=col;i<count+1;i++){
+            if(isEmptyField(row,i)){
+            }else{
+                return false;
+            }
+        }return true;
 
-    public void reset() {
+    }
+
+
+    //checks if empty rn before adding,needs more validation.
+    private void setMoveHor(int row,int col,Tile[] letters){
+        int count = letters.length +col;
+        int counter = 0;
+        if(moveHorLegal(row,col,letters.length)){
+            for(int i=col;i<count+1;i++){
+                setField(row,i,letters[counter]);
+                counter++;
+            }
+        }
+    }
+
+    //to be extended,rn only checks if empty;
+    private boolean moveVerLegal(int row,int col,int size){
+        int count = size+row;
+        for(int i=col;i<count+1;i++){
+            if(isEmptyField(i,col)){
+            }else{
+                return false;
+            }
+        }return true;
+
+    }
+
+
+    //checks if empty rn before adding,needs more validation.
+    private void setMoveVer(int row,int col,Tile[] letters){
+        int count = letters.length +row;
+        int counter = 0;
+        if(moveVerLegal(row,col,letters.length)){
+            for(int i=col;i<count+1;i++){
+                setField(i,col,letters[counter]);
+                counter++;
+            }
+        }
+    }
+
+    public ArrayList<ArrayList<Tile>> reset() {
+        ArrayList<ArrayList<Tile>> result = new  ArrayList<ArrayList<Tile>>();
         emptyBoard();
+        fillBag();
+        result.add(getRack());
+        result.add(getRack());
+        return result;
+
+    }
+
+    public ArrayList<Tile> getRack() {
+        ArrayList<Tile> result = new ArrayList<Tile>();
+        for(int i=0;i<7;i++){
+            result.add(letterBag.get(i));
+            letterBag.remove(i);
+        }
+
+        return result;
+    }
+
+    public boolean isEmptyField(int row,int col){
+        return this.field[row][col].equals(Tile.EMPTY)? true:false;
     }
 
     public boolean isEmptyBoard(){
@@ -201,6 +290,16 @@ public class Board {
             }
         }
         return printBoard;
+    }
+    public Tile[] stringToTile(String[] letters){
+        Tile[] result = new Tile[letters.length];
+        for(int i=0;i<letters.length;i++){
+            for (Tile tile: allEnums){
+                if(letters[i].toLowerCase().equals(tile.toString().toLowerCase())){
+                    result[i] = tile;
+                }
+            }
+        }return result;
     }
 
 

@@ -17,6 +17,9 @@ public abstract class Player {
     public ArrayList<Tile> getRack(){
         return this.playerRack;
     }
+    public void setRack(ArrayList<Tile> rack){
+        this.playerRack = rack;
+    }
 
     public abstract String[] determineMove(Board board);
 
@@ -25,8 +28,8 @@ public abstract class Player {
     public void makeMove(Board board) {
         int row = Integer.parseInt(determineMove(board)[0]);
         int col = Integer.parseInt(determineMove(board)[1]);
-        String word = determineMove(board)[2];
+        Tile[] words = board.stringToTile(determineMove(board)[2].split(""));
         String direction = determineMove(board)[3];
-        //board.setField(row,col,word);
+        board.setMove(row,col,words,direction);
     }
 }
