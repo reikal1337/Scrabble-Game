@@ -8,16 +8,29 @@ public class HumanPlayer extends Player{
         super(name, rack);
     }
 
-
+    //Converting here and in Player.java makeMove
     @Override
     public String[] determineMove(Board board) {
-        String prompt = "> " + getName() + ", Please input: position,letters,direction in this format: " +
-                "row col letters direction";
-        Scanner scnObj = new Scanner(System.in);
+        boolean legal = false;
+        String[] input = new String[0];
+        while(!legal){
+            String prompt = "> " + getName() + ", Please input: position,letters,direction in this format: " +
+                    "row col letters hor/ver";
+            Scanner scnObj = new Scanner(System.in);
 
-        System.out.println(prompt);
-        String input[] = scnObj.nextLine().split(" ");
+            System.out.println(prompt);
+            input = scnObj.nextLine().split(" ");
 
-        return input;
+            int row = Integer.parseInt(input[0]);
+            int col = Integer.parseInt(input[1]);
+            Tile[] words = board.stringToTile(input[2].split(""));
+            String direction = input[3];
+            if(board.checkIfMoveLegal(row,col,words,direction)){
+                legal = true;
+
+            }else{
+                System.out.println("Illegal move!!!");
+            }
+        }return input;
     }
 }

@@ -31,6 +31,7 @@ public class Game {
      * @invariant the index is always between 0 and NUMBER_PLAYERS
      */
     private int current;
+    private int turn;
 
     // -- Constructors -----------------------------------------------
 
@@ -46,6 +47,7 @@ public class Game {
         players[0] = s0;
         players[1] = s1;
         current = 0;
+        turn = 0;
     }
 
     // -- Commands ---------------------------------------------------
@@ -95,12 +97,15 @@ public class Game {
 
         while (!gameOver()) {
             update();
+
             if(current==0) {
                 players[current].makeMove(board);
                 current++;
+                turn++;
             }else if(current==1) {
                 players[current].makeMove(board);
                 current--;
+                turn++;
             }
         }//printResult();
     }

@@ -26,10 +26,13 @@ public abstract class Player {
     //need to add direction!!!!!!!!!!!!!!!!!!!
     //And to receve string,or change string to Enum.
     public void makeMove(Board board) {
-        int row = Integer.parseInt(determineMove(board)[0]);
-        int col = Integer.parseInt(determineMove(board)[1]);
-        Tile[] words = board.stringToTile(determineMove(board)[2].split(""));
-        String direction = determineMove(board)[3];
+        String[] result = determineMove(board);
+        int row = Integer.parseInt(result[0]);
+        int col = Integer.parseInt(result[1]);
+        Tile[] words = board.stringToTile(result[2].split(""));
+        //System.out.println("Test: " + words.toString());
+        String direction = result[3];
         board.setMove(row,col,words,direction);
+
     }
 }
