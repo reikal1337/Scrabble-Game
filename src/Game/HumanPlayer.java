@@ -25,7 +25,14 @@ public class HumanPlayer extends Player{
             int col = Integer.parseInt(input[1]);
             Tile[] words = board.stringToTile(input[2].split(""));
             String direction = input[3];
-            if(board.checkIfMoveLegal(row,col,words,direction)){
+            if(board.isEmptyField(7,7)){
+                System.out.println("First move!");
+                if (board.checkIfFirstMoveLegal(row,col,words)){
+                    legal = true;
+                }else{
+                    System.out.println("Illegal move! First move has to be direction 7 7");
+                }
+            }else if(board.checkIfMoveLegal(row,col,words,direction)){
                 legal = true;
 
             }else{

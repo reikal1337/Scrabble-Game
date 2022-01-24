@@ -7,8 +7,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class Board {
+
+
+    //ToDo
+    //Scores
+    //Check if letters are from rack.
+    //Check input.
+    //Refill sack after turn;
 
     private static final int DIM = 15;
     // private static final String[] NUMBERING = { " 0 | 1 | 2 ", "---+---+---", " 3 | 4 | 5 ", "---+---+---",
@@ -29,8 +38,14 @@ public class Board {
 
     //All tile type enums.
     private static ArrayList<Tile> allEnums;
-    //All words present on board.
-    private static ArrayList<String> wordsOnBoard;
+//    //All words present on board.
+//    private static ArrayList<String> wordsOnBoard;
+//
+//    private static ArrayList<Integer> wordsOnBoardCoord;
+
+
+    private static ArrayList<String> blackList;
+
     //All words that can be used for game.
     private static ArrayList<String> checkWords;
 
@@ -44,7 +59,7 @@ public class Board {
     public static final String CYAN = "\u001B[36m";
 
     //Board fields.
-    private static Tile[][] field;
+    private Tile[][] field;
     //All possible letters
     public ArrayList<Tile> letterBag;
 
@@ -55,9 +70,16 @@ public class Board {
         //TestChecker lol = new TestChecker();
 
         //test.toString();
-        //setMove(7,7);
 
-        System.out.println("Test AGONISTICS: " + test.checkWord("AGONISTICS"));
+
+        Tile[] letters = test.stringToTile("LITH".split(""));
+        test.setMove(7,7,letters,"hor");
+        System.out.println(test.toString());
+
+        letters = test.stringToTile("A".split(""));
+       System.out.println("Move legal? " + test.checkIfMoveLegal(6,9,letters,"ver"));
+        test.setMove(6,9,letters,"ver");
+        System.out.println("Game board: \n" + test.toString());
 
     }
 
@@ -88,10 +110,10 @@ public class Board {
         reset();
     }
 
-    //returns wordsOnBoard array.
-    public ArrayList<String> getWordsOnBoard() {
-        return this.wordsOnBoard;
-    }
+//    //returns wordsOnBoard array.
+//    public ArrayList<String> getWordsOnBoard() {
+//        return this.wordsOnBoard;
+//    }
     //returns letterBag array.
     public ArrayList<Tile> getbag() {
         return this.letterBag;
@@ -141,7 +163,7 @@ public class Board {
     }
 
     //Creates and returns specified boards copy.
-    private Board boardCopy(Board board) {
+    public Board boardCopy(Board board) {
         Board newBoard = new Board();
         for (int i = 0; i < DIM; i++) {
             for (int j = 0; j < DIM; j++) {
@@ -152,39 +174,39 @@ public class Board {
     }
 
     //Creates and returns this boards copy.
-    private Board boardCopy() {
+    public Board boardCopy() {
         Board newBoard = new Board();
         for (int i = 0; i < DIM; i++) {
             for (int j = 0; j < DIM; j++) {
-                newBoard.setField(i, j, getField(i, j));
+                newBoard.setField(i, j,getField(i,j));
             }
         }
         return newBoard;
     }
 
     //sets field to specified tile in specific field;
-    public static void setField(int row, int col, Tile tile) {
+    public void setField(int row, int col, Tile tile) {
         if (isField(row, col)) {
-            field[row][col] = tile;
+            this.field[row][col] = tile;
         }
     }
 
     //sets field to specified tile in specific field;
-    public static void setField(int index, Tile tile) {
+    public void setField(int index, Tile tile) {
         int row = coordinates(index)[0];
         int col = coordinates(index)[1];
         setField(row, col, tile);
     }
 
-    //Based on hor or ver calls specific setMove method,after which list of words on board are added.
-    public void setMove(int row, int col, Tile[] letters, String dir) {
-        if (dir.toLowerCase().equals("hor")) {
-            setMoveHor(row, col, letters);
-            addWordsFromBoard();
-        } else if (dir.toLowerCase().equals("ver")) {
-            setMoveVer(row, col, letters);
-            addWordsFromBoard();
-        }
+
+    //Checks if first move is legal.
+    public boolean checkIfFirstMoveLegal(int row, int col, Tile[] letters) {
+        if(row == 7 && col == 7){
+            String word = tileToString(letters);
+            if(checkWord(word)){
+                 return true;
+            }return false;
+        }return false;
     }
 
 
@@ -201,22 +223,112 @@ public class Board {
     //if fields are empty horizontally it places it on temporary board and
     // calls methode to check if there is new word on board.
     private boolean moveHorLegal(int row, int col, Tile[] letters) {//wordsOnBoard
-        int count = letters.length + col;
-
+        ArrayList<String> allWordsOfMove = new ArrayList<String>();//Not returning for now.
+        boolean legal = false;
+        String word = "";
         Board tempBoard = boardCopy();
-        tempBoard.addWordsFromBoard();
-        int wordsBefore = tempBoard.getWordsOnBoard().size();
-        int wordsAfter = 0;
-        if (moveHorEmpty(row, col, letters)) {
-            tempBoard.setMove(row, col, letters, "hor");
-            wordsAfter = tempBoard.getWordsOnBoard().size();
-            if (wordsAfter > wordsBefore) {
-                return true;
+        tempBoard.setMove(row,col,letters,"hor");
+        int[] wordStart = horWordStart(row,col,tempBoard);
+        int nRow = wordStart[0];
+        int nCol = wordStart[1];
+
+
+        word = horGetWord(nRow,nCol,tempBoard);
+        if (tempBoard.checkWord(word)){
+            legal = true;
+            allWordsOfMove.add(word);
+        }
+        for(int i=nCol;i<DIM;i++){
+            if(topEmpty(nRow,i,tempBoard) || bottomEmpty(nRow,i,tempBoard)){
+                int[] vStart = verWordStart(nRow,i,tempBoard);
+                word = verGetWord(vStart[0],vStart[1],tempBoard);
+                if (tempBoard.checkWord(word)){
+                    legal = true;
+                    allWordsOfMove.add(word);
+                }
             }
         }
-        return false;
-
+        return legal;
     }
+
+    private String horGetWord(int row,int col,Board tempBoard){
+        String result = "";
+        while(!tempBoard.isEmptyField(row,col) && col < 14){
+            result = result + tempBoard.getField(row,col).toString();
+            col++;
+            //System.out.println("Col:" + col);
+        }return result;
+    }
+
+    private int[] horWordStart(int row,int col,Board tempBoard){
+        int[] result = new int[2];
+        for(int i=col;i>=0;i--){
+            if(tempBoard.isEmptyField(row,i)){
+                return new int[] {row,i+1};
+            }
+        } return null;
+    }
+
+    private boolean moveVerLegal(int row, int col, Tile[] letters) {//wordsOnBoard
+        ArrayList<String> allWordsOfMove = new ArrayList<String>();//Not returning for now;
+        boolean legal = false;
+        String word = "";
+        Board tempBoard = boardCopy();
+        tempBoard.setMove(row,col,letters,"ver");
+        int[] wordStart = verWordStart(row,col,tempBoard);
+        int nRow = wordStart[0];
+        int nCol = wordStart[1];
+
+
+        word = verGetWord(nRow,nCol,tempBoard);
+        if (tempBoard.checkWord(word)){
+            legal = true;
+            allWordsOfMove.add(word);
+        }
+        for(int i=nRow;i<DIM;i++){
+            if(leftEmpty(i,nCol,tempBoard) || rightEmpty(i,nCol,tempBoard)){
+                int[] vStart = horWordStart(i,nCol,tempBoard);
+                word = horGetWord(vStart[0],vStart[1],tempBoard);
+                if (checkWord(word)){
+                    legal = true;
+                    allWordsOfMove.add(word);
+                }
+            }
+        }
+        return legal;
+    }
+
+    private String verGetWord(int row,int col,Board tempBoard){
+        String result = "";
+        while(!tempBoard.isEmptyField(row,col) && row >= 0){
+            result = result + tempBoard.getField(row,col).toString();
+            row--;
+            System.out.println("Row: " + row);
+        }return result;
+    }
+
+    private int[] verWordStart(int row,int col,Board tempBoard){
+        int[] result = new int[2];
+        for(int i=row;i>=0;i--){
+            if(tempBoard.isEmptyField(i,col)){
+                return new int[] {i+1,col};
+            }
+        } return null;
+    }
+
+    private boolean topEmpty(int row,int col,Board tempBoard){
+        return tempBoard.isEmptyField(row,col-1);
+    }
+    private boolean bottomEmpty(int row,int col,Board tempBoard){
+        return tempBoard.isEmptyField(row,col+1);
+    }
+    private boolean leftEmpty(int row,int col,Board tempBoard){
+        return tempBoard.isEmptyField(row-1,col);
+    }
+    private boolean rightEmpty(int row,int col,Board tempBoard){
+        return tempBoard.isEmptyField(row+1,col);
+    }
+
 
 
     //Checks if fields horizontally in which word should go are empty.Doesn't check if letter is "-" aka empty.
@@ -240,25 +352,25 @@ public class Board {
 
     }
 
-    //if fields are empty vertically it places it on temporary board and
-    // calls methode to check if there is new word on board.
-    private boolean moveVerLegal(int row, int col, Tile[] letters) {
-        int count = letters.length + row;
-
-        Board tempBoard = boardCopy();
-        tempBoard.addWordsFromBoard();
-        int wordsBefore = tempBoard.getWordsOnBoard().size();
-        int wordsAfter = 0;
-        if (moveVerEmpty(row, col, letters)) {
-            tempBoard.setMove(row, col, letters, "ver");
-            wordsAfter = tempBoard.getWordsOnBoard().size();
-            if (wordsAfter > wordsBefore) {
-                return true;
-            }
-        }
-        return false;
-
-    }
+//    //if fields are empty vertically it places it on temporary board and
+//    // calls methode to check if there is new word on board.
+//    private boolean moveVerLegal(int row, int col, Tile[] letters) {
+//        int count = letters.length + row;
+//
+//        Board tempBoard = boardCopy();
+//        //tempBoard.addWordsFromBoard();
+//        int wordsBefore = tempBoard.getWordsOnBoard().size();
+//        int wordsAfter = 0;
+//        if (moveVerEmpty(row, col, letters)) {
+//            tempBoard.setMove(row, col, letters, "ver");
+//            wordsAfter = tempBoard.getWordsOnBoard().size();
+//            if (wordsAfter > wordsBefore) {
+//                return true;
+//            }
+//        }
+//        return false;
+//
+//    }
 
     //Checks if fields vertically in which word should go are empty.Doesn't check if letter is "-" aka empty.
     private boolean moveVerEmpty(int row, int col, Tile[] letters) {
@@ -281,16 +393,23 @@ public class Board {
     }
 
 
+    //Based on hor or ver calls specific setMove method,after which list of words on board are added.
+    public void setMove(int row, int col, Tile[] letters, String dir) {
+        if (dir.toLowerCase().equals("hor")) {
+            setMoveHor(row, col, letters);
+        } else if (dir.toLowerCase().equals("ver")) {
+            setMoveVer(row, col, letters);
+        }
+    }
+
     //Set tiles in positions horizontally.
     private void setMoveHor(int row, int col, Tile[] letters) {
         int count = letters.length + col;
         int counter = 0;
         for (int i = col; i < count + 1; i++) {
             if (counter < letters.length) {
-                if (!letters[counter].equals("-")) {
+                if (isEmptyField(row,i)) {
                     setField(row, i, letters[counter]);
-                    counter++;
-                }else{
                     counter++;
                 }
             }
@@ -302,12 +421,10 @@ public class Board {
     private void setMoveVer(int row, int col, Tile[] letters) {
         int count = letters.length + row;
         int counter = 0;
-        for (int i = col; i < count + 1; i++) {
+        for (int i = row; i < count+1 ; i++) {
             if (counter < letters.length) {
-                if (!letters[counter].equals("-")) {
+                if (isEmptyField(i,col)) {
                     setField(i, col, letters[counter]);
-                    counter++;
-                }else{
                     counter++;
                 }
             }
@@ -317,7 +434,6 @@ public class Board {
 
     //Resets board and returns 2 racks.
     public ArrayList<ArrayList<Tile>> reset() {
-        wordsOnBoard = new ArrayList<String>();
         ArrayList<ArrayList<Tile>> result = new ArrayList<ArrayList<Tile>>();
         emptyBoard();
         fillBag();
@@ -438,48 +554,63 @@ public class Board {
     }
 
 
-    //Calls methodes too add words from board.
-    public void addWordsFromBoard() {
-        addWordsFromBoardHor();
-        addWordsFromBoardVer();
+//    //Calls methodes too add words from board.Not fully works.
+//    public void addWordsFromBoard() {
+//        addWordsFromBoardHor();
+//        addWordsFromBoardVer();
+//
+//    }
 
-    }
+//    //Adds all words horizontally currently on board to wordsOnBoard array.
+//    public void addWordsFromBoardHor() {//wordsOnBoardCoord
+//        String word = "";
+//        int wordsIndex = 0;
+//        for (int i = 0; i < DIM; i++) {
+//            for (int j = 0; j < DIM; j++) {
+//                System.out.println("Tile: " + getField(i,j).toString());
+//                if (!isEmptyField(i, j)) {
+//                    System.out.println(this.toString());
+//                    if(word.equals("")){
+//                        wordsIndex = index(i,j);
+//                    }
+//                    word = word + getField(i, j).toString();
+//                    System.out.println("Row: "+ i + " Col: "+j+"TestWord: " + word);
+//                    if (checkWord(word)) {
+//                        //System.out.println("List: " + getWordsOnBoard().toString());
+//                        if(wordsOnBoard.contains(word) && wordsOnBoardCoord.get(wordsOnBoard.indexOf(word)).equals(index(i,j))){
+//                        }else{
+//                            wordsOnBoard.add(word);
+//                            wordsOnBoardCoord.add(wordsIndex);
+//                            int[] coord = coordinates(wordsIndex);
+//                            i = coord[0];
+//                            j = coord[1];
+//                            word = word.substring(0);
+//                        }
+//                    }
+//                }else{
+//                    word = "";
+//                }
+//            }
+//        }
+//    }
 
-    //Adds all words horizontally currently on board to wordsOnBoard array.
-    public void addWordsFromBoardHor() {
-        String word = "";
-        for (int i = 0; i < DIM; i++) {
-            for (int j = 0; j < DIM; j++) {
-                if (!isEmptyField(i, j)) {
-                    word = word + getField(i, j).toString();
-                    if (checkWord(word)) {
-                        wordsOnBoard.add(word);
-                        word = word.substring(word.length() - 1);
-                    } else {
-                        word = "";
-                    }
-                }
-            }
-        }
-    }
-
-    //Adds all words vertically currently on board to wordsOnBoard array.
-    public void addWordsFromBoardVer() {
-        String word = "";
-        for (int i = 0; i < DIM; i++) {
-            for (int j = 0; j < DIM; j++) {
-                if (!isEmptyField(j, i)) {
-                    word = word + getField(j, i).toString();
-                    if (checkWord(word)) {
-                        wordsOnBoard.add(word);
-                        word = word.substring(word.length() - 1);
-                    } else {
-                        word = "";
-                    }
-                }
-            }
-        }
-    }
+//    //Adds all words vertically currently on board to wordsOnBoard array.
+//    public void addWordsFromBoardVer() {
+//        String word = "";
+//        for (int i = 0; i < DIM; i++) {
+//            for (int j = 0; j < DIM; j++) {
+//                if (!isEmptyField(j, i)) {
+//                    word = word + getField(j, i).toString();
+//                    if (checkWord(word)) {
+//                        wordsOnBoard.add(word);
+//                        word = word.substring(word.length() - 1);
+//                    } else {
+//                        word = "";
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 
     //From document takes words and adds them to checkWords array.
@@ -487,6 +618,8 @@ public class Board {
         File file = new File("src\\Utils\\collins_scrabble_words_2019.txt");
         Scanner sc = null;
         checkWords = new ArrayList<String>();
+        blackList = new ArrayList<String>();
+        Collections.addAll(blackList,"II","III","IV","VI","VII","VIII","IX","XI","XII","XIII");
         try {
             sc = new Scanner(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -496,10 +629,10 @@ public class Board {
             String[] line = sc.next().split(" ");
             String theWord = line[0].replace("\t", "");
             theWord = theWord.replace(",", "");
-            if (wordIsUpperCase(theWord) && theWord.length() > 1) {
+            if (wordIsUpperCase(theWord) && theWord.length() > 1 && !blackList.contains(theWord)) {
                 checkWords.add(theWord);
             }
-        }
+        }sc.close();
 
     }
 
@@ -544,6 +677,17 @@ public class Board {
         }
         return true;
     }
+
+    //From letter list returns representing Tile list.
+    public String tileToString(Tile[] letters) {
+        String result = "";
+        for (int i = 0; i < letters.length; i++) {
+            result = result + letters[i].toString();
+        }
+        return result;
+    }
+
+
 
     //From letter list returns representing Tile list.
     public Tile[] stringToTile(String[] letters) {

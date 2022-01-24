@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 ;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +21,7 @@ public class BoardTests {
     public void testBoardEpmtyAtStart(){
         assertTrue(board.isEmptyBoard());
     }
+
     @Test
     public void testFillBag(){
         board.fillBag();
@@ -73,6 +75,27 @@ public class BoardTests {
         assertEquals(board.getField(12,3),Tile.EMPTY);
 
     }
+
+    @Test
+    public void testSetMoveVertically(){
+        Tile[] testTile = {Tile.L,Tile.I,Tile.T,Tile.H};
+        board.setMove(7,7,testTile,"ver");
+        assertEquals(board.getField(7,7),Tile.L);
+        assertEquals(board.getField(8,7),Tile.I);
+        assertEquals(board.getField(9,7),Tile.T);
+        assertEquals(board.getField(10,7),Tile.H);
+    }
+
+    @Test
+    public void testsetMoveHorizontally(){
+        Tile[] testTile = {Tile.L,Tile.I,Tile.T,Tile.H};
+        board.setMove(7,7,testTile,"hor");
+        assertEquals(board.getField(7,7),Tile.L);
+        assertEquals(board.getField(7,8),Tile.I);
+        assertEquals(board.getField(7,9),Tile.T);
+        assertEquals(board.getField(7,10),Tile.H);
+    }
+
 
     public int ocurrance(ArrayList<Tile> list, Tile item){
         int counter = 0;

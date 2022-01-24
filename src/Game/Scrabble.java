@@ -17,7 +17,7 @@ public class Scrabble {
         String input1 = TextIO.getln();
         first = new HumanPlayer(input1,gameBoard.getRack());
 
-        System.out.println("First player's name: \n");
+        System.out.println("Second player's name: \n");
         String input2 = TextIO.getln();
         second = new HumanPlayer(input2,gameBoard.getRack());
 
