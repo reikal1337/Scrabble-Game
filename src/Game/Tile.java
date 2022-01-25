@@ -23,7 +23,7 @@ public enum Tile {
     T(1,"T"),
     U(1,"U"),
     V(4,"V"),
-    W(5,"W"),
+    W(4,"W"),
     X(8,"X"),
     Y(4,"Y"),
     Z(10,"Z"),
@@ -40,7 +40,7 @@ public enum Tile {
             this.value = value;
             this.name = name;
         }
-        public int getTile(){
+        public int getValue(){
             return this.value;
         }
 

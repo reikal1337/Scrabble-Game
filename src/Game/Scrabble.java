@@ -2,6 +2,7 @@ package Game;
 
 import Utils.TextIO;
 import Game.*;
+import Utils.WordChecker;
 
 import java.util.ArrayList;
 
@@ -11,7 +12,8 @@ public class Scrabble {
         HumanPlayer first ;
         HumanPlayer second;
         Game ticTacToe;
-        Board gameBoard= new Board();
+        WordChecker check = new WordChecker();
+        Board gameBoard= new Board(check);
 
         System.out.println("First player's name: \n");
         String input1 = TextIO.getln();
