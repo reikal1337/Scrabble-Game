@@ -173,16 +173,6 @@ public class Board {
         return this.field[row][col];
     }
 
-    //Creates and returns specified boards copy.
-    public Board boardCopy(Board board) {
-        Board newBoard = new Board(this.checker);
-        for (int i = 0; i < DIM; i++) {
-            for (int j = 0; j < DIM; j++) {
-                newBoard.setField(i, j, board.getField(i, j));
-            }
-        }
-        return newBoard;
-    }
 
     //Creates and returns this boards copy.
     public Board boardCopy() {
@@ -290,27 +280,29 @@ public class Board {
         int nRow = wordStart[0];
         int nCol = wordStart[1];
 
-
-        movesWords = horGetWord(nRow,nCol,tempBoard);;
-        word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-        if (checker.checkWord(word)){
-            for(int i=nCol;i<DIM;i++){
-                if(topEmpty(nRow,i,tempBoard) || bottomEmpty(nRow,i,tempBoard)){
-                    legal = true;
-                    score = calculateScore(word,movesWords.get(word));
-                    break;
+        if(aroundNotEmptyHor(nRow,nCol,tempBoard)) {
+            movesWords = horGetWord(nRow, nCol, tempBoard);
+            ;
+            word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+            if (checker.checkWord(word)) {
+                for (int i = nCol; i < DIM; i++) {
+                    if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
+                        legal = true;
+                        score = calculateScore(word, movesWords.get(word));
+                        break;
+                    }
                 }
-            }
 
-        }
-        for(int i=nCol;i<DIM;i++){
-            if(topEmpty(nRow,i,tempBoard) || bottomEmpty(nRow,i,tempBoard)){
-                int[] vStart = verWordStart(nRow,i,tempBoard);
-                movesWords = verGetWord(vStart[0],vStart[1],tempBoard);
-                word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-                if (checker.checkWord(word)){
-                    legal = true;
-                    score = calculateScore(word,movesWords.get(word));
+            }
+            for (int i = nCol; i < DIM; i++) {
+                if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
+                    int[] vStart = verWordStart(nRow, i, tempBoard);
+                    movesWords = verGetWord(vStart[0], vStart[1], tempBoard);
+                    word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+                    if (checker.checkWord(word)) {
+                        legal = true;
+                        score = calculateScore(word, movesWords.get(word));
+                    }
                 }
             }
         }
@@ -340,6 +332,14 @@ public class Board {
             }
         } return null;
     }
+    //New
+    private boolean aroundNotEmptyHor(int row,int col,Board tempBoard){
+        for(int i=col;i<DIM;i++){
+            if(!tempBoard.topEmpty(row,i,tempBoard) || !tempBoard.bottomEmpty(row,i,tempBoard)){
+                return true;
+            }
+        }return false;
+    }
 
     private int moveVerLegal(int row, int col, Tile[] letters) {//wordsOnBoard
         HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
@@ -352,26 +352,29 @@ public class Board {
         int nRow = wordStart[0];
         int nCol = wordStart[1];
 
-        movesWords = verGetWord(nRow,nCol,tempBoard);;
-        word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-        if (checker.checkWord(word)){
-            for(int i=nRow;i<DIM;i++){
-                if(leftEmpty(i,nCol,tempBoard) || rightEmpty(i,nCol,tempBoard)){
-                    legal = true;
-                    score = calculateScore(word,movesWords.get(word));
-                    break;
-                }
-            }
+        if(aroundNotEmptyVer(nRow,nCol,tempBoard)) {
+            movesWords = verGetWord(nRow, nCol, tempBoard);
 
-        }
-        for(int i=nRow;i<DIM;i++){
-            if(leftEmpty(i,nCol,tempBoard) || rightEmpty(i,nCol,tempBoard)){
-                int[] vStart = horWordStart(i,nCol,tempBoard);
-                movesWords = horGetWord(vStart[0],vStart[1],tempBoard);
-                word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-                if (checker.checkWord(word)){
-                    legal = true;
-                    score = calculateScore(word,movesWords.get(word));
+            word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+            if (checker.checkWord(word)) {
+                for (int i = nRow; i < DIM; i++) {
+                    if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
+                        legal = true;
+                        score = calculateScore(word, movesWords.get(word));
+                        break;
+                    }
+                }
+
+            }
+            for (int i = nRow; i < DIM; i++) {
+                if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
+                    int[] vStart = horWordStart(i, nCol, tempBoard);
+                    movesWords = horGetWord(vStart[0], vStart[1], tempBoard);
+                    word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+                    if (checker.checkWord(word)) {
+                        legal = true;
+                        score = calculateScore(word, movesWords.get(word));
+                    }
                 }
             }
         }
@@ -384,7 +387,7 @@ public class Board {
         ArrayList<Integer> coords = new ArrayList<Integer>();
         String word = "";
         HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
-        while(!tempBoard.isEmptyField(row,col) && row < 15){
+        while(!tempBoard.isEmptyField(row,col) && row < DIM){
             word = word + tempBoard.getField(row,col).toString();
             coords.add(index(row,col));
             row++;
@@ -396,23 +399,43 @@ public class Board {
 
     private int[] verWordStart(int row,int col,Board tempBoard){
         int[] result = new int[2];
-        for(int i=row;i>=0;i--){
+        for(int i=row;i>0;i--){
             if(tempBoard.isEmptyField(i,col)){
                 return new int[] {i+1,col};
             }
         } return null;
     }
 
-    private boolean topEmpty(int row,int col,Board tempBoard){
+    private boolean aroundNotEmptyVer(int row,int col,Board tempBoard){
+        for(int i=row;i<=DIM;i++){
+            if(!tempBoard.leftEmpty(i,col,tempBoard) || !tempBoard.rightEmpty(i,col,tempBoard)){
+                return true;
+            }
+        }return false;
+    }
+
+    public boolean topEmpty(int row,int col,Board tempBoard){
+        if(col==0){
+            return true;
+        }
         return tempBoard.isEmptyField(row,col-1);
     }
-    private boolean bottomEmpty(int row,int col,Board tempBoard){
+    public boolean bottomEmpty(int row,int col,Board tempBoard){
+        if(col==14){
+            return true;
+        }
         return tempBoard.isEmptyField(row,col+1);
     }
-    private boolean leftEmpty(int row,int col,Board tempBoard){
+    public boolean leftEmpty(int row,int col,Board tempBoard){
+        if(row==0){
+            return true;
+        }
         return tempBoard.isEmptyField(row-1,col);
     }
-    private boolean rightEmpty(int row,int col,Board tempBoard){
+    public boolean rightEmpty(int row,int col,Board tempBoard){
+        if(row==14){
+            return true;
+        }
         return tempBoard.isEmptyField(row+1,col);
     }
 
@@ -423,7 +446,7 @@ public class Board {
         int oldScore = 0;
         for (int i=0;i<tiles.length;i++){
             oldScore = score;
-            System.out.println("Cord: " + coords.get(i));
+            //System.out.println("Cord: " + coords.get(i));
             score = oldScore + tiles[i].getValue() * getMultiplier(coords.get(i));
 
         }return score;
@@ -442,26 +465,26 @@ public class Board {
     }
 
 
-    //Checks if fields horizontally in which word should go are empty.Doesn't check if letter is "-" aka empty.
-    private boolean moveHorEmpty(int row, int col, Tile[] letters) {
-        int count = letters.length + col;
-        int counter = 0;
-        for (int i = col; i < count ; i++) {
-            if (letters[counter] != Tile.EMPTY) {
-                if (isEmptyField(row, i)) {
-                    counter++;
-                } else {
-                    return false;
-                }
-            }else{
-                counter++;
-            }
-
-
-        }
-        return true;
-
-    }
+//    //Checks if fields horizontally in which word should go are empty.Doesn't check if letter is "-" aka empty.
+//    private boolean moveHorEmpty(int row, int col, Tile[] letters) {
+//        int count = letters.length + col;
+//        int counter = 0;
+//        for (int i = col; i < count ; i++) {
+//            if (letters[counter] != Tile.EMPTY) {
+//                if (isEmptyField(row, i)) {
+//                    counter++;
+//                } else {
+//                    return false;
+//                }
+//            }else{
+//                counter++;
+//            }
+//
+//
+//        }
+//        return true;
+//
+//    }
 
 //    //if fields are empty vertically it places it on temporary board and
 //    // calls methode to check if there is new word on board.
@@ -483,25 +506,25 @@ public class Board {
 //
 //    }
 
-    //Checks if fields vertically in which word should go are empty.Doesn't check if letter is "-" aka empty.
-    private boolean moveVerEmpty(int row, int col, Tile[] letters) {
-        int count = letters.length + row;
-        int counter = 0;
-        for (int i = col; i < count ; i++) {
-            //System.out.println("Row: " + row + " Col: " + col + " lSize: " + letters.length + " counter: " + counter);
-            if (letters[counter] != Tile.EMPTY) {
-                if (isEmptyField(i, col)) {
-                    counter++;
-                } else {
-                    return false;
-                }
-            }else{
-                counter++;
-            }
-
-        }
-        return true;
-    }
+//    //Checks if fields vertically in which word should go are empty.Doesn't check if letter is "-" aka empty.
+//    private boolean moveVerEmpty(int row, int col, Tile[] letters) {
+//        int count = letters.length + row;
+//        int counter = 0;
+//        for (int i = col; i < count ; i++) {
+//            //System.out.println("Row: " + row + " Col: " + col + " lSize: " + letters.length + " counter: " + counter);
+//            if (letters[counter] != Tile.EMPTY) {
+//                if (isEmptyField(i, col)) {
+//                    counter++;
+//                } else {
+//                    return false;
+//                }
+//            }else{
+//                counter++;
+//            }
+//
+//        }
+//        return true;
+//    }
 
 
     //Based on hor or ver calls specific setMove method,after which list of words on board are added.
@@ -518,6 +541,10 @@ public class Board {
         int count = letters.length + col;
         int counter = 0;
         for (int i = col; i < count + 1; i++) {
+            //New
+            if(count+1>14){
+                return;
+            }
             if (counter < letters.length) {
                 if (isEmptyField(row,i)) {
                     setField(row, i, letters[counter]);
@@ -533,6 +560,10 @@ public class Board {
         int count = letters.length + row;
         int counter = 0;
         for (int i = row; i < count+1 ; i++) {
+            //New
+            if(count+1>14){
+                return;
+            }
             if (counter < letters.length) {
                 if (isEmptyField(i,col)) {
                     setField(i, col, letters[counter]);
@@ -809,6 +840,14 @@ public class Board {
         String result = "";
         for (int i = 0; i < letters.length; i++) {
             result = result + letters[i].toString();
+        }
+        return result;
+    }
+
+    public String tileToString(ArrayList<Tile> letters) {
+        String result = "";
+        for (int i = 0; i < letters.size(); i++) {
+            result = result + letters.get(i).toString();
         }
         return result;
     }

@@ -11,7 +11,6 @@ public class Scrabble {
     public static void main(String[] args) {
         HumanPlayer first ;
         HumanPlayer second;
-        Game ticTacToe;
         WordChecker check = new WordChecker();
         Board gameBoard= new Board(check);
 

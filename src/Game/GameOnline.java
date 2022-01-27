@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Lab assignment Module 2
  * @author Theo Ruys en Arend Rensink
  */
-public class Game {
+public class GameOnline {
     public static final int NUMBER_PLAYERS = 2;
 
     /**
@@ -24,7 +24,7 @@ public class Game {
      * @invariant the length of the array equals NUMBER_PLAYERS
      * @invariant all array items are never null
      */
-    private Player[] players;
+    private ClientPlayer[] players;
 
     /**
      * Index of the current player.
@@ -40,9 +40,9 @@ public class Game {
      * @param s0 the first player
      * @param s1 the second player
      */
-    public Game(Player s0, Player s1,Board board) {
+    public GameOnline(ClientPlayer s0, ClientPlayer s1, Board board) {
         this.board = board;
-        players = new Player[NUMBER_PLAYERS];
+        players = new ClientPlayer[NUMBER_PLAYERS];
         players[0] = s0;
         players[1] = s1;
         current = 0;
@@ -57,13 +57,9 @@ public class Game {
      */
     public void start() {
         boolean continueGame = true;
-        while (continueGame) {
-
             reset();
-            play();
-            System.out.println("\n> Play another time? (y/n)?");
-            continueGame = TextIO.getBoolean();
-        }
+            //System.out.println("\n> Play another time? (y/n)?");
+            //continueGame = TextIO.getBoolean();
     }
     public int getCurrent(){
         return current;
@@ -99,19 +95,21 @@ public class Game {
      * until it is over. Players can make a move one after the other.
      * After each move, the changed game situation is printed.
      */
-    private void play() {
+    public boolean playAMove(String[] move) {
 
-        while (!gameOver()) {
+        if(!gameOver()) {
             //update();
-
             if(current==0) {
-                players[current].makeMove(board);
+                players[current].makeMove(board,move);
                 current++;
+                return true;
             }else if(current==1) {
-                players[current].makeMove(board);
+                players[current].makeMove(board,move);
                 current--;
+                return true;
             }
-        }//printResult();
+        }return false;
+
     }
 
 
