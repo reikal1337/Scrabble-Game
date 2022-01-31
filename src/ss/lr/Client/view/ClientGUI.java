@@ -2,6 +2,7 @@ package ss.lr.Client.view;
 
 import ss.lr.Client.controller.Client;
 import ss.lr.Exceptions.ExitProgram;
+import ss.lr.Exceptions.ServerUnavailableException;
 import ss.lr.Local.model.Board;
 
 import javax.swing.*;
@@ -11,6 +12,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -22,8 +25,8 @@ public class ClientGUI extends JFrame {
     private JButton connectButton;
     private JButton dcButton;
     private JButton readyButton;
-    private JButton turnButton;
-    private JTextField swapField;
+    private JButton skipButton;
+    private JTextField inputField;
     private JTextField ipField;
     private JTextField portField;
     private JTextField nameField;
@@ -46,6 +49,8 @@ public class ClientGUI extends JFrame {
     private JLabel connectionLable;
     private JLabel play1Score;
     private JLabel play2Score;
+    private JLabel rowLable;
+    private JLabel colLable;
     private JList boardList;
     private JButton ipButton;
     private JFrame frame;
@@ -54,7 +59,7 @@ public class ClientGUI extends JFrame {
     private String col;
     private ActionListener tileListener;
     String[] connectionInfo;
-    Client client;
+    Client controller;
     //all dark red tile coordinates.
     private static ArrayList<Integer> DarkRedX3;//8tiles
     //all pale red tile coordinates.
@@ -109,7 +114,8 @@ public class ClientGUI extends JFrame {
         frame = new JFrame();
         row = "";
         col = "";
-        this.client = clnt;
+        this.controller = clnt;
+        specialTiles();
         setupGUI();
         //frame.add(mainPanel);
 
@@ -134,31 +140,6 @@ public class ClientGUI extends JFrame {
 //        });
 
 
-        connectButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(!ipField.getText().isEmpty() && !portField.getText().isEmpty() && !nameField.getText().isEmpty()){
-                    String ip = ipField.getText();
-                    String port = portField.getText();
-                    String name = nameField.getText();
-                    connectionInfo = new String[]{ip, port, name};
-                    //System.out.println("Ip: " + ip + " port: " +port+ " name: " + name);
-                    client.setConnectionInfo(connectionInfo);
-                    try {
-                        client.createConnection();
-                    } catch (ExitProgram ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                //System.out.println("Wtf??");
-            }
-        });
-        readyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                client.doReady();
-            }
-        });
     }
 
     private String[] getBoard(String board){
@@ -169,11 +150,14 @@ public class ClientGUI extends JFrame {
         return letters;
     }
 
-    private void setScore(String name1,String name2,String score1,String score2){
-        player1Field.setText(name1);
-        player2Field.setText(name2);
+    public void setScore(String score1,String score2){
         play1Score.setText(score1);
         play2Score.setText(score2);
+    }
+
+    private void setNames(String name1,String name2){
+        player1Field.setText(name1);
+        player2Field.setText(name2);
     }
 
     public void setTiles(String tiles){
@@ -185,20 +169,37 @@ public class ClientGUI extends JFrame {
     }
 
     public void createBoard(String board,String name1,String name2,String score1,String score2){
+        boardPanel.removeAll();
         boardPanel.setLayout(new GridLayout(15, 15));
         String[] letters = getBoard(board);
-        setScore(name1,name2,score1,score2);
-        System.out.println("Size: " + letters.length +  " " + letters.toString());
+        setNames(name1,name2);
+        setScore(score1,score2);
+        //System.out.println("Size: " + letters.length +  " " + letters.toString());
             for(int i=0; i<15; i++) {
                 for(int j=0; j<15; j++) {
                     int coord = index(i,j);
-                    JButton button= new JButton();
+                    String tile = letters[index(i,j)];
+                    JButton button= new JButton(tile);
                     //button.putClientProperty("location" , new Point(i,j));
                     button.setActionCommand(String.valueOf(coord));
                     //button.setPreferredSize(new Dimension(5, 5));
                     button.addActionListener(tileListener);
-                    button.setText(letters[index(i,j)]);
                     //button.setSize(5,5);
+                    if(tile.equals("-")){
+                        if(DarkRedX3.contains(coord)){
+                            button.setBackground(Color.RED);
+                        }else if (PaleRedX2.contains(coord)){
+                            button.setBackground(Color.PINK);
+                        }else if(DarkBlueX3.contains(coord)){
+                            button.setBackground(Color.BLUE);
+                            button.setForeground(Color.GRAY);
+                        }else if(PaleBlueX2.contains(coord)){
+                            button.setBackground(Color.CYAN);
+                        }else if(coord == index(7,7)){
+                            button.setBackground(Color.BLACK);
+                            //showMessage("trying");
+                        }
+                    }
                     boardPanel.add(button);
                 }
             }
@@ -212,11 +213,11 @@ public class ClientGUI extends JFrame {
                 int coord = index(i,j);
                 JButton button= new JButton();
                 //button.putClientProperty("location" , new Point(i,j));
-                //button.setActionCommand(String.valueOf(coord));
+                button.setActionCommand(String.valueOf(coord));
                 //button.setPreferredSize(new Dimension(5, 5));
                 button.addActionListener(tileListener);
                 button.setText("-");
-                button.setSize(5,5);
+                //button.setSize(5,10);
                 if(DarkRedX3.contains(coord)){
                     button.setBackground(Color.RED);
                 }else if (PaleRedX2.contains(coord)){
@@ -226,12 +227,17 @@ public class ClientGUI extends JFrame {
                     button.setForeground(Color.GRAY);
                 }else if(PaleBlueX2.contains(coord)){
                     button.setBackground(Color.CYAN);
+                }else if(coord == index(7,7)){
+                    Icon starIcon = new ImageIcon("C:\\Users\\reika\\IdeaProjects\\Mod2Project\\src\\Utils\\star.png");
+                    button.setIcon(starIcon);
+                    showMessage("trying");
                 }
                 boardPanel.add(button);
             }
         }
-        boardPanel.revalidate();
-        boardPanel.repaint();
+        frame.revalidate();
+        frame.repaint();
+        frame.pack();
     }
 
     public int index(int row, int col) {
@@ -245,9 +251,19 @@ public class ClientGUI extends JFrame {
     }
 
     private void setCoords(String index){
-        int[] coords = coordinates(Integer.parseInt(index));
-        this.row = String.valueOf(coords[0]);
-        this.col = String.valueOf(coords[1]);
+        if(!index.contains("-")){
+            int[] coords = coordinates(Integer.parseInt(index));
+            this.row = String.valueOf(coords[0]);
+            this.col = String.valueOf(coords[1]);
+            rowLable.setText("Row: " + coords[0]);
+            colLable.setText("Col: " + coords[1]);
+        }else{
+            this.row = "-";
+            this.col = "-";
+            rowLable.setText("Row: " + "-");
+            colLable.setText("Col: " + "-");
+        }
+
 
     }
 
@@ -283,18 +299,6 @@ public class ClientGUI extends JFrame {
     }
     //----------------------------
 
-    //-----ActionListiners--------;
-
-    public void tileListiner(){
-        tileListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String index = e.getActionCommand();
-                setCoords(index);
-            }
-        };
-    }
-
 
 //    public void connectionListiner(){
 //        connectButton.addActionListener(new ActionListener() {
@@ -313,23 +317,98 @@ public class ClientGUI extends JFrame {
 //        });
 //    }
 
+    private void setUpActionListeners(){
 
+        tileListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String index = e.getActionCommand();
+               // showMessage("HAha " + index);
+                setCoords(index);
+            }
+        };
+
+        connectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!ipField.getText().isEmpty() && !portField.getText().isEmpty() && !nameField.getText().isEmpty()){
+                    String ip = ipField.getText();
+                    String port = portField.getText();
+                    String name = nameField.getText();
+                    connectionInfo = new String[]{ip, port, name};
+                    //System.out.println("Ip: " + ip + " port: " +port+ " name: " + name);
+                    controller.setConnectionInfo(connectionInfo);
+                    try {
+                        controller.createConnection();
+                    } catch (ExitProgram ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                //System.out.println("Wtf??");
+            }
+        });
+
+        readyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.doReady();
+            }
+        });
+
+        //Need to check input..Or not use model as it's not needed..
+        moveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String direction = "";
+                if(verRadioButton.isSelected()){
+                    direction = "ver";
+                }else if (horRadioButton.isSelected()){
+                    direction = "hor";
+                }
+                String move = row + " " + col + " " + inputField.getText() + " " + direction;
+                setCoords("- -");
+                inputField.setText("");
+                try {
+                    controller.makeMove(move);
+                } catch (ServerUnavailableException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        chatField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String result = e.getActionCommand();
+                String time = getTime();
+                showMessage(time + " "+ controller.getName()+": "+result);
+                controller.doChat(time + " "+ controller.getName()+": "+result);
+                chatField.setText("");
+            }
+        });
+
+    }
+
+    public String getTime(){
+        LocalTime time = LocalTime.now();
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        return "["+time.format(timeFormatter)+"]";
+    }
 
 
 
 
 
     public void setupGUI(){
-        //setUpBoardListiner();
+        setUpActionListeners();
         //createBoard(board);
-        specialTiles();
-        createBoard();
+        //createBoard();
         frame.add(mainPanel);
         redirectSystemStreams();
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
-        System.out.println("Testing lollll");
+        //System.out.println("Testi);
     }
 
     //--------Controller to GUI
@@ -337,6 +416,16 @@ public class ClientGUI extends JFrame {
         player1Field.setText(names[0]);
         player2Field.setText(names[1]);
         showMessage("Game has started!");
+    }
+
+    public void setStartOfGame(String[] names){
+        setPlayerNames(names);
+        moveButton.setEnabled(true);
+        swapButton.setEnabled(true);
+        inputField.setEnabled(true);
+        skipButton.setEnabled(true);
+
+
     }
 
 
@@ -350,6 +439,10 @@ public class ClientGUI extends JFrame {
         dcButton.setEnabled(true);
         connectButton.setEnabled(false);
         readyButton.setEnabled(true);
+        ipField.setEnabled(false);
+        portField.setEnabled(false);
+        nameField.setEnabled(false);
+        chatField.setEnabled(true);
     }
 
     public void setConnectionNo(){
@@ -357,6 +450,11 @@ public class ClientGUI extends JFrame {
         connectionLable.setForeground(Color.RED);
         dcButton.setEnabled(false);
         connectButton.setEnabled(true);
+        readyButton.setEnabled(false);
+        ipField.setEnabled(true);
+        portField.setEnabled(true);
+        nameField.setEnabled(true);
+        chatField.setEnabled(false);
     }
 
     public void showMessage(String message){

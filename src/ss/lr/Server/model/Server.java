@@ -38,6 +38,7 @@ public class Server implements Runnable, ServerProtocol {
 
     /** The view of this HotelServer */
     private ServerTUI view;
+    //Create proper game over.
 
     public Server(){
         clients = new ArrayList<>();
@@ -264,21 +265,21 @@ public class Server implements Runnable, ServerProtocol {
                     if(!firstMove){
                         score = board.checkIfMoveLegal(row, col, tiles, direction);
                         if(score > 1){
-                            if(!playAMove(move)){
-                                doGameOver(getGameOutcome());
-                            }
                             players[current].addScore(score);
-                            afterMove();
+                            if(!playAMove(move)){
+                                doGameOver(getGameOutcome());//wtf don't remember
+                            }
+                            afterMove(commands[3],name);
                         }else{
                             doError("1",name);
                         }
                     }else if (firstMove) {
                         score = board.checkIfFirstMoveLegal(row,col,tiles,direction);
                         if(score > 1){
+                            players[current].addScore(score);
                             playAMove(move);
                             firstMove = false;
-                            players[current].addScore(score);
-                            afterMove();
+                            afterMove(commands[3],name);
                         }else{
                             doError("1",name);
                         }
@@ -294,22 +295,35 @@ public class Server implements Runnable, ServerProtocol {
     }
 
     @Override
-    public void handleSwap(String[] letters,String name) throws ServerUnavailableException {
+    public void handleSwap(String word,String name) throws ServerUnavailableException {
         ClientPlayer player = getPlayerByName(name);
-        if(letters[1].length() != 1){
-            if(view.stringIsLetters(letters[1])){//need to check so it gets 0;
-                ArrayList<Tile> oldRack = player.getRack();
-                Tile[] replacedRack = board.stringToTile(letters[1].split(""));
-                ArrayList<Tile> newRack = board.removeFromRackAndFill(replacedRack,oldRack);
-                player.setRack(newRack);
-                doTiles(name);
+        String[] letters = word.split("");
+        if(letters.length != 0){
+            if(view.stringIsLetters(word)){
+                Tile[] replacedRack = board.stringToTile(letters);
+                if(inPlayersRack(replacedRack,player)) {
+                    ArrayList<Tile> oldRack = player.getRack();
+                    ArrayList<Tile> newRack = board.removeFromRackAndFill(replacedRack, oldRack);
+                    player.setRack(newRack);
+                    doTiles(name);
+                }else{
+                    doError("2",name);
+                }
             }else{
-                doError("5",name);
+                doError("2",name);
             }
         }else{
             skipTurn();
             doCurrent();
         }
+    }
+    public boolean inPlayersRack(Tile[] tiles,ClientPlayer player){
+        ArrayList<Tile> oldRack = player.getRack();
+        for(Tile tile: tiles){
+            if(!oldRack.contains(tile)){
+                return false;
+            }
+        }return true;
     }
 
     @Override
@@ -365,9 +379,22 @@ public class Server implements Runnable, ServerProtocol {
 
     }
 
+    public void doChat(String message,String name){
+        for(ClientHandler client : clients){
+            if(!client.getName().equals(name)){
+                try {
+                    client.sendMessage(ProtocolMessages.CHAT+ProtocolMessages.DELIMITER+message+ProtocolMessages.EOT);
+                } catch (ServerUnavailableException e) {
+                    new ServerUnavailableException("unable to send messages!");
+                }
+            }
+        }
+
+    }
+
     //UPDATE;<boardrows>;<names>;<points>!
     @Override
-    public void doUpdate(String name) throws ServerUnavailableException {
+    public void doUpdate(String name) throws ServerUnavailableException {//name1,name2,score1,score2
         ClientHandler client = getClinetByNameRdy(name);
         client.sendMessage(ProtocolMessages.UPDATE+ProtocolMessages.DELIMITER+view.getBoard(board)+ProtocolMessages.DELIMITER+players[0].getName()+
                 ProtocolMessages.DELIMITER+players[1].getName()+ProtocolMessages.DELIMITER+players[0].getScore()+
@@ -385,10 +412,13 @@ public class Server implements Runnable, ServerProtocol {
     }
 
     @Override
-    public void afterMove() throws ServerUnavailableException {
+    public void afterMove(String usedLetters,String name) throws ServerUnavailableException {
+        handleSwap(usedLetters,name);
         for(ClientHandler client : readyClients){
             doUpdate(client.getName());
-            doTiles(client.getName());
+            if(!client.getName().equals(name)){
+                doTiles(client.getName());
+            }
         }
         doCurrent();
     }

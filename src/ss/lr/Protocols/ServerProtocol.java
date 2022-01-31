@@ -18,8 +18,8 @@ public interface ServerProtocol {
     public void handleMove(String[] commands,String name) throws ServerUnavailableException;
 
     //Handels SWAP; <letters>!
-    public void handleSwap(String[] letters,String name) throws ServerUnavailableException;
 
+    void handleSwap(String word, String name) throws ServerUnavailableException;
 
     //Handles QUIT!
     public void handleQuit(String name) throws ServerUnavailableException;
@@ -46,6 +46,6 @@ public interface ServerProtocol {
 
     //GAMEOVER;<endType>;<names>;<points>!
     public void doGameOver(String endType) throws ServerUnavailableException;
-    public void afterMove() throws ServerUnavailableException;
 
+    void afterMove(String usedLetters, String name) throws ServerUnavailableException;
 }

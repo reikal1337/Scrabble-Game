@@ -17,6 +17,7 @@ public class ProtocolMessages {
     public static final String QUIT = "QUIT";
     public static final String JOIN = "JOIN";
     public static final String READY = "READY";
+    public static final String CHAT = "CHAT";
 
     //Server protocols
 

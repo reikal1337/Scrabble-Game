@@ -34,7 +34,7 @@ public interface ClientProtocol {
     public void doExit() throws ServerUnavailableException;
 
     //ERROR; <errorType>!
-    public void handleError(String error)  throws ServerUnavailableException;
+    public String handleError(String error)  throws ServerUnavailableException;
 
     //GAMESTART; <names>*!
     public String[] handleGameStart(String[] names);
@@ -49,9 +49,11 @@ public interface ClientProtocol {
     public String[] handleUpdate(String[] update);
 
     //GAMEOVER;<endType>;<names>;<points>!
-    public void handleGameOver(String[] over);
+    public String[] handleGameOver(String[] over);
 
     void setName(String name);
+
+    void doChat(String message) throws ServerUnavailableException;
 
     //public void handleResponse(String[] proccesInput)throws ServerUnavailableException;
 }

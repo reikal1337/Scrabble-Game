@@ -41,6 +41,10 @@ public class Client {
         //connectionInfo = new String[3];
     }
 
+    public String getName(){
+        return this.name;
+    }
+
 
     //add skip with empty SWAP.
     public void start() throws ServerUnavailableException {
@@ -85,6 +89,21 @@ public class Client {
             e.printStackTrace();
         }
     }
+
+    public void makeMove(String info) throws ServerUnavailableException {
+        String[] move = info.split(" ");
+        model.doMove(move);
+    }
+
+    public void doChat(String message) {
+        try {
+            model.doChat(message);
+        } catch (ServerUnavailableException e) {
+            new ServerUnavailableException("Unable to send message!");
+        }
+    }
+
+
 
 
 
@@ -134,6 +153,36 @@ public class Client {
             }
         }
     }
+
+
+//    public void handleError(String error) throws ServerUnavailableException {
+//        switch (error) {
+//            case "0":
+//                gui.showMessage("Error: Not your turn!");
+//                break;
+//            case "1":
+//                gui.showMessage("Error:  invalid move");
+//                break;
+//            case "2":
+//                gui.showMessage("Error: invalid swap");
+//                break;
+//            case "3":
+//                gui.showMessage("Error: bag empty");
+//                break;
+//            case "4":
+//                gui.showMessage("Error: server unavailable");
+//                break;
+//            case "5":
+//                gui.showMessage("Error: unknown command");
+//                break;
+//            case "6":
+//                gui.showMessage("Error: flag not supported");
+//                break;
+//            case "7":
+//                gui.showMessage("Error: invalid word (Your turn gets skipped)");
+//                break;
+//        }
+//    }
 
     public void createConnection() throws ExitProgram {
         clearConnection();
@@ -308,14 +357,14 @@ public class Client {
                         switch (message[0]){
                             case ProtocolMessages.ERROR:
                                 try {
-                                    model.handleError(message[1]);
+                                    gui.showMessage(model.handleError(message[1]));
                                 } catch (ServerUnavailableException e) {
                                     e.printStackTrace();
                                 }
                                 break;
                             case ProtocolMessages.GAMESTART:
                                 // view.showMessage("Start!?");
-                                gui.setPlayerNames(model.handleGameStart(message));
+                                gui.setStartOfGame(model.handleGameStart(message));
                                 break;
                             case ProtocolMessages.TILES:
                                  gui.setTiles(model.handleTiles(message[1]));
@@ -328,7 +377,13 @@ public class Client {
                                gui.createBoard(message[1],message[2],message[3],message[4],message[5]);
                                 break;
                             case ProtocolMessages.GAMEOVER:
-                                model.handleGameOver(message);
+                                String[] result = model.handleGameOver(message);
+                                gui.showMessage(result[0]);
+                                gui.setScore(result[1],result[2]);
+                                break;
+                                case ProtocolMessages.CHAT:{
+                                    gui.showMessage(message[1]);
+                                }
                         }
                     }
 

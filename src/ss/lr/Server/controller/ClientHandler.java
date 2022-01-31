@@ -109,11 +109,16 @@ public class ClientHandler implements Runnable {
                 server.handleMove(com,name);
                 break;
             case(ProtocolMessages.SWAP):
-                server.handleSwap(com,name);
+                server.handleSwap(com[1],name);
+                break;
             case(ProtocolMessages.QUIT):
                 server.handleQuit(name);
+                break;
             case(ProtocolMessages.READY):
                 server.handleReady(this);
+                break;
+            case(ProtocolMessages.CHAT):
+                server.doChat(com[1],name);
 
         }
     }

@@ -287,13 +287,12 @@ public class Board {
 
         if(aroundNotEmptyHor(nRow,nCol,tempBoard)) {
             movesWords = horGetWord(nRow, nCol, tempBoard);
-            ;
             word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
             if (checker.checkWord(word)) {
                 for (int i = nCol; i < DIM; i++) {
                     if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
                         legal = true;
-                        score = calculateScore(word, movesWords.get(word));
+                        score = score + calculateScore(word, movesWords.get(word));
                         break;
                     }
                 }
@@ -306,13 +305,44 @@ public class Board {
                     word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
                     if (checker.checkWord(word)) {
                         legal = true;
-                        score = calculateScore(word, movesWords.get(word));
+                        score = score + calculateScore(word, movesWords.get(word));
                     }
                 }
             }
         }
         return score;
     }
+
+    private int moveHorLegalTest(int row, int col, Tile[] letters) {//wordsOnBoard
+        HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
+        int score = 0;
+        boolean legal = false;
+        String word = "";
+        Board tempBoard = boardCopy();
+        tempBoard.setMove(row,col,letters,"hor");
+        int[] wordStart = horWordStart(row,col,tempBoard);
+        int nRow = wordStart[0];
+        int nCol = wordStart[1];
+        movesWords = horGetWord(nRow,nCol,tempBoard);
+
+        word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+        for (int i=nCol;i<nCol+word.length();i++){//row
+            if(checkTopBottomNotEmpty(nRow,i,tempBoard)){
+
+            }
+        }
+
+
+        return score;
+    }
+
+    private boolean checkTopBottomNotEmpty(int row,int col,Board tempBoard){
+        if(!bottomEmpty(row,col,tempBoard) || !topEmpty(row,col,tempBoard)){
+            return true;
+        }return false;
+    }
+
+
 
 
     private HashMap<String,ArrayList<Integer>>  horGetWord(int row,int col,Board tempBoard){
@@ -365,7 +395,7 @@ public class Board {
                 for (int i = nRow; i < DIM; i++) {
                     if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
                         legal = true;
-                        score = calculateScore(word, movesWords.get(word));
+                        score = score + calculateScore(word, movesWords.get(word));
                         break;
                     }
                 }
@@ -378,7 +408,7 @@ public class Board {
                     word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
                     if (checker.checkWord(word)) {
                         legal = true;
-                        score = calculateScore(word, movesWords.get(word));
+                        score = score + calculateScore(word, movesWords.get(word));
                     }
                 }
             }

@@ -60,8 +60,8 @@ public class ClientModel implements ClientProtocol {
     @Override
     public void doMove(String[] move) throws ServerUnavailableException {//m row col letters direction
         try {
-            controller.sendMessage(ProtocolMessages.MOVE+ProtocolMessages.DELIMITER+move[1]+ProtocolMessages.DELIMITER+
-                    move[2]+ProtocolMessages.DELIMITER+move[3]+ProtocolMessages.DELIMITER+move[4]+
+            controller.sendMessage(ProtocolMessages.MOVE+ProtocolMessages.DELIMITER+move[0]+ProtocolMessages.DELIMITER+
+                    move[1]+ProtocolMessages.DELIMITER+move[2]+ProtocolMessages.DELIMITER+move[3]+
                     ProtocolMessages.EOT);
 
             //Should move where it listens. handleResponse(proccesInput(readLineFromServer()));
@@ -117,6 +117,10 @@ public class ClientModel implements ClientProtocol {
 
     }
 
+    public void doChat(String message) throws ServerUnavailableException {
+        controller.sendMessage(ProtocolMessages.CHAT+ProtocolMessages.DELIMITER+message+ProtocolMessages.EOT);
+    }
+
 
     @Override
     public void doExit() throws ServerUnavailableException {
@@ -128,41 +132,26 @@ public class ClientModel implements ClientProtocol {
     };
 
     @Override
-    public void handleError(String error) throws ServerUnavailableException {
+    public String handleError(String error) throws ServerUnavailableException {
         switch (error) {
             case "0":
-                view.showMessage("Error: Not your turn!");
-                controller.working();
-                break;
+                return "Error: Not your turn!";
             case "1":
-                view.showMessage("Error:  invalid move");
-                controller. working();
-                break;
+                return "Error:  invalid move";
             case "2":
-                view.showMessage("Error: invalid swap");
-                controller. working();
-                break;
+                return "Error: invalid swap";
             case "3":
-                view.showMessage("Error: bag empty");
-                controller.working();
-                break;
+                return "Error: bag empty";
             case "4":
-                view.showMessage("Error: server unavailable");
-                controller.working();
-                break;
+                return "Error: server unavailable";
             case "5":
-                view.showMessage("Error: unknown command");
-                controller.working();
-                break;
+                return "Error: unknown command";
             case "6":
-                view.showMessage("Error: flag not supported");
-                controller.working();
-                break;
+                return "Error: flag not supported";
             case "7":
-                view.showMessage("Error: invalid word (Your turn gets skipped)");
-                controller.working();
-                break;
+                return "Error: invalid word";
         }
+        return null;
     }
 
     @Override
@@ -206,21 +195,23 @@ public class ClientModel implements ClientProtocol {
     //STOP, a player quits or anything else
 
     @Override
-    public void handleGameOver(String[] over) {//Not sure if should ask for next game;
+    public String[] handleGameOver(String[] over) {//Not sure if should ask for next game;
+        String result = "";
         int firstScore = Integer.parseInt(over[4]);
         int secondScore = Integer.parseInt(over[5]);
         if(over[1].equals("WINNER")){
             if(firstScore>secondScore){
-                view.showMessage("Game end! Winner is: " + over[2]);
+                result ="Game end! Winner is: " + over[2];
             }else{
-                view.showMessage("Game end! Winner is: " + over[3]);
+                result = "Game end! Winner is: " + over[3];
             }
         }else if(over[1].equals("DRAW")){
-            view.showMessage("Game end! Draw!");
+            result = "Game end! Draw!";
         }else if(over[1].equals("DRAW")){
-            view.showMessage("Game end! Player left!");
+            result = "Game end! Player left!";
         }
-
+        String[] fullResult = {result,String.valueOf(firstScore),String.valueOf(secondScore)};
+        return fullResult;
     }
 
 
