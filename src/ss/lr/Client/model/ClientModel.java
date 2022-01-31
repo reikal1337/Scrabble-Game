@@ -1,5 +1,6 @@
 package ss.lr.Client.model;
 
+import ss.lr.Client.view.ClientGUI;
 import ss.lr.Exceptions.ProtocolException;
 import ss.lr.Exceptions.ServerUnavailableException;
 import ss.lr.Protocols.ClientProtocol;
@@ -9,46 +10,22 @@ import ss.lr.Client.view.ClientTUI;
 
 public class ClientModel implements ClientProtocol {
     private ClientTUI view;;
+    private ClientGUI gui;
     private Client controller;
     private String name;
     private boolean playing ;
 
-    public ClientModel(Client controller,String name){
+    public ClientModel(Client controller,String name,ClientGUI gui){
         this.controller = controller;
         view =new ClientTUI();
         this.name = name;
+        this.gui = gui;
     }
     public void setName(String name){
         this.name = name;
     }
 
-    public void handleResponse(String[] message) throws ServerUnavailableException {
-        if(!message.equals(null)){
-            switch (message[0]){
-                case ProtocolMessages.ERROR:
-                    handleError(message[1]);
-                    break;
-                case ProtocolMessages.GAMESTART:
-                   // view.showMessage("Start!?");
-                    handleGameStart(message);
-                    break;
-                case ProtocolMessages.TILES:
-                    handleTiles(message[1]);
-                    break;
-                case ProtocolMessages.CURRENT:
-                    handleCurrent(message[1]);
-                    break;
-                case ProtocolMessages.UPDATE:
-                    handleUpdate(message);
-                    break;
-                case ProtocolMessages.GAMEOVER:
-                    handleGameOver(message);
 
-            }
-
-        }
-
-    }
 
     @Override
     public void handleHello() throws ServerUnavailableException, ProtocolException {
@@ -66,7 +43,7 @@ public class ClientModel implements ClientProtocol {
                 throw new ProtocolException("Incorrect handshake!!");
             }else{
                 if(ans[1].equals(name)){
-                    view.showMessage("Connection established!");
+                    gui.showMessage("Connection established!");
                 }
             }
         } catch (ServerUnavailableException e) {
@@ -189,36 +166,35 @@ public class ClientModel implements ClientProtocol {
     }
 
     @Override
-    public void handleGameStart(String[] names) {
+    public String[] handleGameStart(String[] names) {
         playing = true;
-        view.showMessage("Game has started with players: " + names[1]+" and "+ names[2]);
+        return names;
     }
 
     @Override
-    public void handleTiles(String tiles) {
-        controller.tiles.clear();
+    public String handleTiles(String tiles) {
+        String res = "";
         String[] newTiles = tiles.split("");
         for(String tile : newTiles){
-            controller.tiles.add(tile);
+            res = res+ " " + tile;
         }
-        view.showMessage("Your new tiles:\n" + controller.tiles.toString());
+        return res;
     }
 
     @Override
     public void handleCurrent(String name) throws ServerUnavailableException {
-        if(name.equals(this.name)){
-            view.showMessage("It's your turn");
-        }else {
-            view.showMessage("It's other players turn!");
-        }
+
     }
 
     @Override
-    public void handleUpdate(String[] update) {//2,3 names,4,5 scores;
+    public String[] handleUpdate(String[] update) {//2,3 names,4,5 scores;
         //view.showMessage("Size: " + update.length);
-        view.printBoard(update[1]);
-        view.showMessage(update[2] + " score: " + update[4] +
-                "\n" + update[3] + " score: " + update[5]);
+//        view.printBoard(update[1]);
+//        view.showMessage(update[2] + " score: " + update[4] +
+//                "\n" + update[3] + " score: " + update[5]);
+
+
+        return update;
 
     }
 

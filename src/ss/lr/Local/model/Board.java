@@ -1,7 +1,11 @@
 package ss.lr.Local.model;
 
 import Utils.WordChecker;
+import ss.lr.Client.view.ClientGUI;
 
+import javax.swing.*;
+import java.awt.*;
+import java.text.Normalizer;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,10 +63,14 @@ public class Board {
     //All possible letters
     public ArrayList<Tile> letterBag;
     public WordChecker checker;
+    private static JFrame gui;
 
     //Using for testing.
     public static void main(String[] args) {
         Board test = new Board();
+
+
+        //gui.setVisible(true);
         // WordChecker test = new WordChecker();
         //TestChecker lol = new TestChecker();
 
@@ -71,11 +79,11 @@ public class Board {
         //System.out.println("Lol: "+test.checkWord("res"));
 
 
-        Tile[] letters = test.stringToTile("LITH".split(""));
-        test.setMove(7,7,letters,"hor");
-        System.out.println(test.toString());
-        Board newBoard = test.boardCopy();
-        System.out.println("\nNew board: \n" + newBoard.toString());
+//        Tile[] letters = test.stringToTile("LITH".split(""));
+//        test.setMove(7,7,letters,"hor");
+//        System.out.println(test.toString());
+//        Board newBoard = test.boardCopy();
+//        System.out.println("\nNew board: \n" + newBoard.toString());
 
 //        letters = test.stringToTile("A".split(""));
 //       System.out.println("Move legal? " + test.checkIfMoveLegal(6,9,letters,"ver"));
@@ -674,7 +682,7 @@ public class Board {
     }
 
     //From row and col return one number index;
-    private int index(int row, int col) {
+    public int index(int row, int col) {
         return row * DIM + col;
     }
 
@@ -687,25 +695,46 @@ public class Board {
     }
 
 
-    //Prints out board.
+
     @Override
     public String toString() {
         String printBoard = "";
         for (int i = 0; i < DIM; i++) {
             String row = "";
             for (int j = 0; j < DIM; j++) {
-                row = row + " " + getField(i, j) + " ";
+                row = row  + getField(i, j) ;
                 if (j < DIM - 1) {
-                    row = row + "|";
+                    row = row + ",";
                 }
             }
             printBoard = printBoard + row;
             if (i < DIM - 1) {
-                printBoard = printBoard + "\n" + LINE + "\n";
+                printBoard = printBoard + ",";
             }
         }
         return printBoard;
     }
+
+
+//    //A good one
+//    @Override
+//    public String toString() {
+//        String printBoard = "";
+//        for (int i = 0; i < DIM; i++) {
+//            String row = "";
+//            for (int j = 0; j < DIM; j++) {
+//                row = row + " " + getField(i, j) + " ";
+//                if (j < DIM - 1) {
+//                    row = row + "|";
+//                }
+//            }
+//            printBoard = printBoard + row;
+//            if (i < DIM - 1) {
+//                printBoard = printBoard + "\n" + LINE + "\n";
+//            }
+//        }
+//        return printBoard;
+//    }
 
 
 //    //Calls methodes too add words from board.Not fully works.

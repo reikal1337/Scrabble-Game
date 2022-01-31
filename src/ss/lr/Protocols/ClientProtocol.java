@@ -37,21 +37,21 @@ public interface ClientProtocol {
     public void handleError(String error)  throws ServerUnavailableException;
 
     //GAMESTART; <names>*!
-    public void handleGameStart(String[] names);
+    public String[] handleGameStart(String[] names);
 
     //TILES;<letters>!
-    public void handleTiles(String tiles);
+    public String handleTiles(String tiles);
 
     //CURRENT; <currentName>!
     public void handleCurrent(String name) throws ServerUnavailableException;
 
     //UPDATE;<boardrows>;<names>;<points>!
-    public void handleUpdate(String[] update);
+    public String[] handleUpdate(String[] update);
 
     //GAMEOVER;<endType>;<names>;<points>!
     public void handleGameOver(String[] over);
 
     void setName(String name);
 
-    public void handleResponse(String[] proccesInput)throws ServerUnavailableException;
+    //public void handleResponse(String[] proccesInput)throws ServerUnavailableException;
 }

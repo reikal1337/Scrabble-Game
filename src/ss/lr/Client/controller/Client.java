@@ -1,5 +1,6 @@
 package ss.lr.Client.controller;
 
+import ss.lr.Client.view.ClientGUI;
 import ss.lr.Exceptions.ExitProgram;
 import ss.lr.Exceptions.ProtocolException;
 import ss.lr.Exceptions.ServerUnavailableException;
@@ -21,36 +22,40 @@ public class Client {
     private BufferedReader in;
     private BufferedWriter out;
     private ClientTUI view;
-    private String name;
     private boolean connected;
     public ArrayList<String> tiles;
     ClientProtocol model;
     MyThreadWork work;
     MyThreadRead read;
+    private String name;
+    String[] connectionInfo;
+    boolean gotInfo = false;
+    ClientGUI gui;
 
 
     public Client() {
         view = new ClientTUI();
         tiles = new ArrayList<String>();
-        model = new ClientModel(this,name);
+        gui = new ClientGUI("Sccrable",this);
+        model = new ClientModel(this,name,gui);
+        //connectionInfo = new String[3];
     }
 
 
     //add skip with empty SWAP.
     public void start() throws ServerUnavailableException {
-        try {
-            createConnection();
-            model.handleHello();
-        } catch (ExitProgram e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (ServerUnavailableException e) {
-            e.printStackTrace();
-        }
+            //createConnection();
+            //model.handleHello();
 
-        execute();
+        //execute();
         //working();
+    }
+
+    public void setConnectionInfo(String[] info){
+        this.connectionInfo = info;
+    }
+    public void setGotInfo(Boolean state){
+        this.gotInfo = state;
     }
 
     public void execute() throws ServerUnavailableException {
@@ -71,13 +76,23 @@ public class Client {
         return res;
     }
 
+    //-----View To model.
+
+    public void doReady(){
+        try {
+            model.doReady();
+        } catch (ServerUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     //Should also liste to server!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//private boolean working = true;
     //add skip and exit
     public void working() throws ServerUnavailableException {
-        view.printHelpMenu();
-        while(serverSock != null){
+        //view.printHelpMenu();
+        while(serverSock != null ){
             String ans = view.getString("Please input command: ");
             String[] command = ans.split(" ");
             String strCom = "";
@@ -123,22 +138,29 @@ public class Client {
     public void createConnection() throws ExitProgram {
         clearConnection();
         while(serverSock == null){
-            InetAddress addr = view.getIp();
-            int port = view.getInt("Please input port: ");
+            int port = 0;
+            InetAddress addr = null;
             try {
-                name = view.getString("Please input your name: ");
+                addr = InetAddress.getByName(connectionInfo[0]);
+                port = Integer.parseInt(connectionInfo[1]);
+                name = connectionInfo[2];
                 model.setName(name);
-                view.showMessage("Connecting to " +addr+ ":" +port+ ".....");
+                gui.showMessage("Connecting to " +addr+ ":" +port+ ".....");
                 serverSock = new Socket(addr,port);
                 in = new BufferedReader(new InputStreamReader(serverSock.getInputStream()));
                 out = new BufferedWriter(new OutputStreamWriter(serverSock.getOutputStream()));
-                connected = true;
+                connected = true;//Not needed I thin
+                gui.setConnectionYes();//Not needed I think
+                model.handleHello();
+                execute();
+
             } catch (IOException e) {
-                view.showMessage("ERROR: Couldn't connect to: " + addr + ":" + port);
-                if (!view.getBoolean("Do you want to try again? y/n")) {
-                    throw new ExitProgram("Server is being closed!");
-                }
+                gui.showMessage("ERROR: Couldn't connect to: " + addr + ":" + port);
                 serverSock = null;
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            } catch (ServerUnavailableException e) {
+                e.printStackTrace();
             }
         }
         //view.showMessage("Connection lost!");
@@ -272,18 +294,46 @@ public class Client {
         }
     }
 
-    public class MyThreadRead extends Thread {
-
+    public class MyThreadRead extends Thread {//proccesInput(readLineFromServer()
+//Verify prbl evrything here
         public void run(){
             while(connected){
+                String[] message = new String[0];
                 try {
-                    model.handleResponse(proccesInput(readLineFromServer()));
+                    message = proccesInput(readLineFromServer());
                 } catch (ServerUnavailableException e) {
                     e.printStackTrace();
                 }
+                if(!message.equals(null)){
+                        switch (message[0]){
+                            case ProtocolMessages.ERROR:
+                                try {
+                                    model.handleError(message[1]);
+                                } catch (ServerUnavailableException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            case ProtocolMessages.GAMESTART:
+                                // view.showMessage("Start!?");
+                                gui.setPlayerNames(model.handleGameStart(message));
+                                break;
+                            case ProtocolMessages.TILES:
+                                 gui.setTiles(model.handleTiles(message[1]));
+                                break;
+                            case ProtocolMessages.CURRENT:
+                                    gui.setCurrent(message[1]);
+                                break;
+                            case ProtocolMessages.UPDATE:
+                                String[] info = model.handleUpdate(message);
+                               gui.createBoard(message[1],message[2],message[3],message[4],message[5]);
+                                break;
+                            case ProtocolMessages.GAMEOVER:
+                                model.handleGameOver(message);
+                        }
+                    }
+
+                }
             }
         }
-    }
-
 }
 

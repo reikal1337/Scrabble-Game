@@ -61,7 +61,7 @@ public class Server implements Runnable, ServerProtocol {
                 setup();
                 while(true){
                     Socket sock = serverSock.accept();
-                    String name = "ss/lr/Client "
+                    String name = "Client "
                             + String.format("%02d", next_client_no++);
                     view.showMessage("New client [" + name + "] connected!");
                     ClientHandler handler =
@@ -94,8 +94,9 @@ public class Server implements Runnable, ServerProtocol {
             } catch (IOException e) {
                 view.showMessage("ERROR: could not create a socket on "
                         + "127.0.0.1" + " and port " + port + ".");
+                //e.printStackTrace();
 
-                if (!view.getBoolean("Do you want to try again?")) {
+                if (!view.getBoolean("Do you want to try again? yes/no")) {
                     throw new ExitProgram("Server is being closed!");
                 }
                 serverSock = null;
@@ -319,7 +320,9 @@ public class Server implements Runnable, ServerProtocol {
 
     @Override
     public void handleReady(ClientHandler client) throws ServerUnavailableException {
-        readyClients.add(client);
+        if(!readyClients.contains(client)){
+            readyClients.add(client);
+        }
         if(readyClients.size() == 2){//need to change ==2
             doGameStart();
         }

@@ -83,14 +83,14 @@ public class ServerTUI implements ServerView{
         for (int i = 0; i < DIM; i++) {
             String row = "";
             for (int j = 0; j < DIM; j++) {
-                row = row + " " + board.getField(i, j) + " ";
+                row = row  + board.getField(i, j) ;
                 if (j < DIM - 1) {
-                    row = row + "|";
+                    row = row + ",";
                 }
             }
             printBoard = printBoard + row ;
             if (i < DIM - 1) {
-                printBoard = printBoard + "," + LINE + ",";
+                printBoard = printBoard + "," ;
             }
         }
         return printBoard;
