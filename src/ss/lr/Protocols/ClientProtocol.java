@@ -13,13 +13,13 @@ public interface ClientProtocol {
      * @return String to be sent to client as a handshake response.
      */
    // public String getHello();
-    public void handleHello() throws ServerUnavailableException, ProtocolException;
+    public String handleHello() throws ServerUnavailableException, ProtocolException;
 
     //handels MOVE;<position>;<letters>;<direction>!
     public void doMove(String[] move) throws ServerUnavailableException;
 
     //Handels SWAP; <letters>!
-    public void doSwap(String[] letters) throws ServerUnavailableException;
+    public void doSwap(String letters) throws ServerUnavailableException;
     public void doSwap() throws ServerUnavailableException;
 
 

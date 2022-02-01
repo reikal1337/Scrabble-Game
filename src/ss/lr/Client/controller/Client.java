@@ -25,7 +25,7 @@ public class Client {
     private boolean connected;
     public ArrayList<String> tiles;
     ClientProtocol model;
-    MyThreadWork work;
+    //MyThreadWork work;
     MyThreadRead read;
     private String name;
     String[] connectionInfo;
@@ -63,13 +63,9 @@ public class Client {
     }
 
     public void execute() throws ServerUnavailableException {
-        work = new MyThreadWork();
+        //work = new MyThreadWork();
         read = new MyThreadRead();
-        work.start();
         read.start();
-
-
-
     }
 
     public String[] proccesInput(String input){
@@ -80,7 +76,36 @@ public class Client {
         return res;
     }
 
-    //-----View To model.
+    //-----View To model. instead of this do switch....
+    public void doSwap(String letters){
+        try {
+            model.doSwap(letters);
+
+        } catch (ServerUnavailableException e) {
+            new ServerUnavailableException();
+        }
+    }
+    public void doSkip(){
+        try {
+            model.doSwap();
+        } catch (ServerUnavailableException e) {
+            new ServerUnavailableException();
+        }
+    }
+
+
+    public void doExit(){
+        try {
+            model.doExit();
+        } catch (ServerUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void doError(String messasge){
+        gui.showError(messasge);
+
+    }
 
     public void doReady(){
         try {
@@ -107,8 +132,7 @@ public class Client {
 
 
 
-    //Should also liste to server!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//private boolean working = true;
-    //add skip and exit
+    //Might want to add this as controler and move evrything else to mode...?
     public void working() throws ServerUnavailableException {
         //view.printHelpMenu();
         while(serverSock != null ){
@@ -127,7 +151,7 @@ public class Client {
                         }
                         break;
                     case "s":
-                        model.doSwap(command);
+                        //model.doSwap(command);
                         break;
                     case "q":
                         model.doExit();
@@ -184,34 +208,36 @@ public class Client {
 //        }
 //    }
 
-    public void createConnection() throws ExitProgram {
+    public void createConnection(String ip,String sPort,String name) throws ExitProgram {
         clearConnection();
-        while(serverSock == null){
+        //while(serverSock == null){
             int port = 0;
             InetAddress addr = null;
             try {
-                addr = InetAddress.getByName(connectionInfo[0]);
-                port = Integer.parseInt(connectionInfo[1]);
-                name = connectionInfo[2];
+                addr = InetAddress.getByName(ip);
+                port = Integer.parseInt(sPort);
                 model.setName(name);
-                gui.showMessage("Connecting to " +addr+ ":" +port+ ".....");
                 serverSock = new Socket(addr,port);
                 in = new BufferedReader(new InputStreamReader(serverSock.getInputStream()));
                 out = new BufferedWriter(new OutputStreamWriter(serverSock.getOutputStream()));
-                connected = true;//Not needed I thin
-                gui.setConnectionYes();//Not needed I think
-                model.handleHello();
-                execute();
+                connected = true;//Needed for thred..
+                String connection = model.handleHello();
+                if(connection != null){
+                    gui.showMessage(connection);
+                    gui.setConnectionYes();
+                    execute();
+                }
+
 
             } catch (IOException e) {
-                gui.showMessage("ERROR: Couldn't connect to: " + addr + ":" + port);
+                gui.showError("ERROR: Couldn't connect to: " + addr + ":" + port);
                 serverSock = null;
             } catch (ProtocolException e) {
                 e.printStackTrace();
             } catch (ServerUnavailableException e) {
                 e.printStackTrace();
             }
-        }
+       // }
         //view.showMessage("Connection lost!");
     }
 
@@ -285,7 +311,7 @@ public class Client {
                         && !line.equals(ProtocolMessages.EOT); line = in.readLine()) {
                     sb.append(line + System.lineSeparator());
                 }
-                view.showMessage("After: " + sb.toString());
+                //view.showMessage("After: " + sb.toString());
                 return sb.toString();
             } catch (IOException e) {
                 throw new ServerUnavailableException("Could not read from server.");
@@ -300,12 +326,13 @@ public class Client {
      * serverSocket.
      */
     public void closeConnection() {
-        view.showMessage("Closed connection!");
+        gui.showMessage("Closed connection!");
         try {
+            read.interrupt();
+            connected = false;
             in.close();
             out.close();
             serverSock.close();
-            connected = false;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -332,16 +359,16 @@ public class Client {
 //
 //    }
 
-    public class MyThreadWork extends Thread {
-
-        public void run(){
-            try {
-                working();
-            } catch (ServerUnavailableException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    public class MyThreadWork extends Thread {
+//
+//        public void run(){
+//            try {
+//                working();
+//            } catch (ServerUnavailableException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
     public class MyThreadRead extends Thread {//proccesInput(readLineFromServer()
 //Verify prbl evrything here
@@ -357,7 +384,7 @@ public class Client {
                         switch (message[0]){
                             case ProtocolMessages.ERROR:
                                 try {
-                                    gui.showMessage(model.handleError(message[1]));
+                                    gui.showError(model.handleError(message[1]));
                                 } catch (ServerUnavailableException e) {
                                     e.printStackTrace();
                                 }
@@ -382,7 +409,7 @@ public class Client {
                                 gui.setScore(result[1],result[2]);
                                 break;
                                 case ProtocolMessages.CHAT:{
-                                    gui.showMessage(message[1]);
+                                    gui.showChat(message[1]);
                                 }
                         }
                     }

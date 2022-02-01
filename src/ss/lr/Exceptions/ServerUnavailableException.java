@@ -7,5 +7,8 @@ public class ServerUnavailableException extends Exception {
 	public ServerUnavailableException(String msg) {
 		super(msg);
 	}
+	public ServerUnavailableException() {
+		super("Can't reach server");
+	}
 
 }

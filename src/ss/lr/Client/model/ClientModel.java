@@ -27,8 +27,9 @@ public class ClientModel implements ClientProtocol {
 
 
 
+    //Might need to be moved to controller..
     @Override
-    public void handleHello() throws ServerUnavailableException, ProtocolException {
+    public String handleHello() throws ServerUnavailableException, ProtocolException {
         try {
             controller.sendMessage(ProtocolMessages.JOIN+ProtocolMessages.DELIMITER+name+ProtocolMessages.EOT);
         } catch (ServerUnavailableException e) {
@@ -39,16 +40,20 @@ public class ClientModel implements ClientProtocol {
             //view.showMessage("Wtf? " + orgMsg);
             String[] ans = orgMsg.split(ProtocolMessages.DELIMITER);
             ans[ans.length-1] = ans[ans.length-1].replaceAll(ProtocolMessages.EOT,"");
-            if(!ans[0].equals(ProtocolMessages.WELCOME)){
-                throw new ProtocolException("Incorrect handshake!!");
+            if(!ans[0].equals(ProtocolMessages.WELCOME )){
+                if(!ans[0].equals(ProtocolMessages.ERROR)){
+                    throw new ProtocolException("Incorrect handshake!!");
+                }else{
+                    controller.doError(handleError(ans[1]));
+                }
             }else{
                 if(ans[1].equals(name)){
-                    gui.showMessage("Connection established!");
+                    return "Connection established!";
                 }
             }
         } catch (ServerUnavailableException e) {
             throw new ServerUnavailableException("Could not write from server.");
-        }
+        }return null;
     }
     public String[] proccesInput(String input){
         String[] res = input.split(ProtocolMessages.DELIMITER);
@@ -72,7 +77,8 @@ public class ClientModel implements ClientProtocol {
     }
 
     @Override
-    public void doSwap(String[] letters) throws ServerUnavailableException {
+    public void doSwap(String word) throws ServerUnavailableException {
+        String[] letters = word.split("");
         try {
             controller.sendMessage(ProtocolMessages.SWAP+ProtocolMessages.DELIMITER+letters[1]+
                     ProtocolMessages.EOT);
@@ -99,7 +105,7 @@ public class ClientModel implements ClientProtocol {
     public void handleQuit() throws ServerUnavailableException {
         controller.sendMessage(ProtocolMessages.QUIT+ProtocolMessages.EOT);
         controller.closeConnection();
-        controller.start();
+        //controller.start();
 
     }
 
@@ -125,9 +131,7 @@ public class ClientModel implements ClientProtocol {
     @Override
     public void doExit() throws ServerUnavailableException {
         controller.sendMessage(ProtocolMessages.QUIT+ProtocolMessages.EOT);
-        controller. closeConnection();
-        view.showMessage("Closing the program!");
-        System.exit(0);
+        controller.closeConnection();
 
     };
 
@@ -135,21 +139,23 @@ public class ClientModel implements ClientProtocol {
     public String handleError(String error) throws ServerUnavailableException {
         switch (error) {
             case "0":
-                return "Error: Not your turn!";
+                return "Error: invalid name!";
             case "1":
-                return "Error:  invalid move";
+                return "Error: invalid move!";
             case "2":
-                return "Error: invalid swap";
+                return "Error: invalid swap!";
             case "3":
-                return "Error: bag empty";
+                return "Error: bag empty!";
             case "4":
-                return "Error: server unavailable";
+                return "Error: server unavailable!";
             case "5":
-                return "Error: unknown command";
+                return "Error: unknown command!";
             case "6":
-                return "Error: flag not supported";
+                return "Error: flag not supported!";
             case "7":
-                return "Error: invalid word";
+                return "Error: invalid word!";
+            case "8":
+                return "Error: not your turn!";
         }
         return null;
     }

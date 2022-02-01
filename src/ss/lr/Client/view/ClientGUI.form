@@ -34,7 +34,7 @@
               <text value="localhost"/>
             </properties>
           </component>
-          <component id="e6635" class="javax.swing.JTextField" binding="portField">
+          <component id="9c90c" class="javax.swing.JTextField" binding="portField">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -45,7 +45,7 @@
               <text value="2727"/>
             </properties>
           </component>
-          <component id="6096b" class="javax.swing.JTextField" binding="nameField">
+          <component id="6283a" class="javax.swing.JTextField" binding="nameField">
             <constraints>
               <grid row="3" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -344,10 +344,11 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="3b0f" class="javax.swing.JTextArea" binding="chatText">
+              <component id="c1afe" class="javax.swing.JTextArea" binding="chatText">
                 <constraints/>
                 <properties>
-                  <editable value="true"/>
+                  <editable value="false"/>
+                  <font name="Lucida Sans Typewriter" style="1"/>
                 </properties>
               </component>
             </children>

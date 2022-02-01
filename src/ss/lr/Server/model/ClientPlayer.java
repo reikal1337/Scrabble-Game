@@ -24,7 +24,7 @@ public class ClientPlayer {
     }
 
     public void addScore(int sc){
-        this.score = this.score + sc;
+        this.score = this.score + (sc);
     }
 
     public ArrayList<Tile> getRack(){

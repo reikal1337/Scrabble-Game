@@ -11,8 +11,8 @@ public interface ServerProtocol {
      *
      * @return String to be sent to client as a handshake response.
      */
-    public String getHello();
-    public void handelHello(String name) throws ServerUnavailableException;
+
+    void handelHello(String name, ClientHandler client) throws ServerUnavailableException;
 
     //handels MOVE;<position>;<letters>;<direction>!
     public void handleMove(String[] commands,String name) throws ServerUnavailableException;

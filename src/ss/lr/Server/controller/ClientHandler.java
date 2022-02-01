@@ -46,6 +46,9 @@ public class ClientHandler implements Runnable {
     public String getName(){
         return this.name;
     }
+    public void setName(String name){
+        this.name = name;
+    }
 
 
     @Override
@@ -102,8 +105,7 @@ public class ClientHandler implements Runnable {
         //System.out.println("Wtf handler: "+com.toString() );
         switch (com[0].toUpperCase()){
             case (ProtocolMessages.JOIN):
-                this.name = com[1];
-                server.handelHello(com[1]);
+                server.handelHello(com[1],this);
                 break;
             case(ProtocolMessages.MOVE):
                 server.handleMove(com,name);

@@ -30,6 +30,7 @@ public class Server implements Runnable, ServerProtocol {
     private String ip;
     private boolean gameStarted = false;
     boolean firstMove = true;
+    private int skipCount;
 
     //Games stuff
     private Board board;
@@ -47,6 +48,7 @@ public class Server implements Runnable, ServerProtocol {
         next_client_no = 1;
         players = new ClientPlayer[2];
         ip = "localhost";
+        skipCount = 0;
     }
 
     public List<ClientHandler> getRdyClients(){
@@ -120,7 +122,7 @@ public class Server implements Runnable, ServerProtocol {
 
     public void setupGame(){
         WordChecker check = new WordChecker();
-        board= new Board(check);
+        board = new Board(check);
         ClientPlayer first = new ClientPlayer(readyClients.get(0).getName(),board.getRack()) ;
         ClientPlayer second = new ClientPlayer(readyClients.get(1).getName(),board.getRack());
         players[0] = first;
@@ -141,11 +143,41 @@ public class Server implements Runnable, ServerProtocol {
                 current--;
                 return true;
             }
-        }return false;
-
+        }calculateLastScores();
+        return false;
     }
+
+    private void calculateLastScores(){
+        int player1Minus = 0;
+        int player2Minus = 0;
+        for(int i=0;i<2;i++){
+            ArrayList<Tile> tiles = players[i].getRack();
+            if(tiles.size() != 0) {
+                for (Tile tile : tiles) {
+                    if (i == 0) {
+                        player1Minus = player1Minus + tile.getValue();
+                    } else {
+                        player2Minus = player2Minus + tile.getValue();
+                    }
+                }
+            }
+        }
+        if(player1Minus == 0 && player2Minus == 0){
+
+        }else if(player1Minus == 0){
+            players[0].addScore(player2Minus);
+            players[1].addScore(-player1Minus);
+        }else if (player2Minus == 0){
+            players[0].addScore(-player2Minus);
+            players[1].addScore(player1Minus);
+        }else{
+            players[0].addScore(-player2Minus);
+            players[1].addScore(-player1Minus);
+        }
+    }
+    //Game ends when 3 skips are made in a row.
     private boolean gameOver() {
-        if(players[0].getRack().isEmpty() || players[1].getRack().isEmpty()){
+        if(skipCount == 3){
             return true;
         }return false;
     }
@@ -197,17 +229,20 @@ public class Server implements Runnable, ServerProtocol {
     }
 
 //-------Server methods----------
-    @Override
-    public String getHello() {
-        return "Joining test message";
-    }
 
     @Override
-    public void handelHello(String name) throws ServerUnavailableException {
+    public void handelHello(String name, ClientHandler client) throws ServerUnavailableException {
         //view.showMessage("Name:"+name+" size of list" + clients.size());
+        if(getClinetByName(name) == null){
+            client.setName(name);
+            client.sendMessage(ProtocolMessages.WELCOME+ProtocolMessages.DELIMITER
+                    +name+ProtocolMessages.DELIMITER+namesInServer()+ProtocolMessages.EOT);
+        }else{
+            view.showMessage("LOl");
+            doError("0",client.getName());
+        }
 
-        getClinetByName(name).sendMessage(ProtocolMessages.WELCOME+ProtocolMessages.DELIMITER
-                +name+ProtocolMessages.DELIMITER+namesInServer()+ProtocolMessages.EOT);
+
 
 
     }
@@ -264,33 +299,47 @@ public class Server implements Runnable, ServerProtocol {
                 if (gameStarted) {
                     if(!firstMove){
                         score = board.checkIfMoveLegal(row, col, tiles, direction);
-                        if(score > 1){
+                        if(score > 0){
+                            if(tiles.length == 7){
+                                score = score + 50;
+                            }
                             players[current].addScore(score);
+                            skipCount = 0;
                             if(!playAMove(move)){
                                 doGameOver(getGameOutcome());//wtf don't remember
                             }
                             afterMove(commands[3],name);
-                        }else{
+                        }else if(score == -1){
+                            handleSwap("",name);
+                            doError("7",name);
+                        }
+                        else{
                             doError("1",name);
                         }
                     }else if (firstMove) {
                         score = board.checkIfFirstMoveLegal(row,col,tiles,direction);
-                        if(score > 1){
+                        if(score > 0){
+                            if(tiles.length == 7){
+                                score = score + 50;
+                            }
                             players[current].addScore(score);
+                            skipCount = 0;
                             playAMove(move);
                             firstMove = false;
                             afterMove(commands[3],name);
-                        }else{
+                        }else if(score == -1){
+                            handleSwap("",name);
+                            doError("7",name);
+                        } else{
                             doError("1",name);
                         }
-
                     }
                 }
             }else{
                 doError("5",name);
             }
         }else{//ERROR; <errorType>!
-            doError("0",name);
+            doError("8",name);
         }
     }
 
@@ -299,20 +348,19 @@ public class Server implements Runnable, ServerProtocol {
         ClientPlayer player = getPlayerByName(name);
         String[] letters = word.split("");
         if(letters.length != 0){
-            if(view.stringIsLetters(word)){
                 Tile[] replacedRack = board.stringToTile(letters);
                 if(inPlayersRack(replacedRack,player)) {
                     ArrayList<Tile> oldRack = player.getRack();
                     ArrayList<Tile> newRack = board.removeFromRackAndFill(replacedRack, oldRack);
                     player.setRack(newRack);
+                    skipTurn();
+                    doCurrent();
                     doTiles(name);
                 }else{
                     doError("2",name);
                 }
-            }else{
-                doError("2",name);
-            }
         }else{
+            skipCount++;
             skipTurn();
             doCurrent();
         }
@@ -328,7 +376,7 @@ public class Server implements Runnable, ServerProtocol {
 
     @Override
     public void handleQuit(String name) throws ServerUnavailableException {
-        getClinetByNameRdy(name).shutdown();
+        getClinetByName(name).shutdown();
         doGameOver("STOP");
     }
 

@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,11 +16,22 @@ public class Board {
 
 
     //ToDo
-    //Scores++
+    //Scores ++
     //Check if letters are from rack.++
     //Check input.++
     //Refill sack after turn;++
-    //BLANK tile.
+    //BLANK tile.++
+    //GAme over.++ Should do better game over....s
+    //More descriptive errors,input +-
+    //Diferecate between ilegal move and illegal word.++
+    //Do server discconect..
+    //Complete skip button..++
+    //Check if on border end good...Idk wtf I meant +- :D
+    //
+    //-------------------------Other day
+    //Should fix exceptions ,too many
+    //If I want colorfully console in GUi need to change to JTextPane and use Documentation.
+    //Changing all Tile[] to ArrayList[]
 
     private static final int DIM = 15;
     // private static final String[] NUMBERING = { " 0 | 1 | 2 ", "---+---+---", " 3 | 4 | 5 ", "---+---+---",
@@ -215,10 +227,20 @@ public class Board {
 //        }return false;
 //    }
 
-    //Checks if first move is legal.
+    //Might have bug that it will think if blank is can't make word or is in bad position makes it that it's bad word..
     public int checkIfFirstMoveLegal(int row, int col, Tile[] letters, String dir) {
         int score = 0;
         if(row == 7 && col == 7){
+            List<Tile> tileList = Arrays.asList(letters);
+            if(tileList.contains(Tile.BLANK)){
+                int index = tileList.indexOf(Tile.BLANK);
+                Tile newTile = checkMoveWithBlank(row,col,tileList,dir,true);
+                if(!newTile.equals(Tile.BLANK)){
+                    letters[index] = newTile;
+                }else{
+                    return score-1;
+                }
+            }
             if (dir.toLowerCase().equals("hor")) {
                 score = firstMoveHorLegal(row, col, letters);
                 return score > 0 ? score:0;
@@ -238,8 +260,8 @@ public class Board {
         if(checker.checkWord(word)){
             letterScore = horGetWord(row,col,tempBoard);
             word = letterScore.keySet().toString().replaceAll("[\\[\\]]", "");
-            score = calculateScore(word,letterScore.get(word));
-        }return score;
+            score = calculateScore(letterScore);
+        }return score-1;
     }
 
     private int firstMoveVerLegal(int row,int col,Tile[] letters){
@@ -251,22 +273,46 @@ public class Board {
         if(checker.checkWord(word)){
             letterScore = verGetWord(row,col,tempBoard);
             word = letterScore.keySet().toString().replaceAll("[\\[\\]]", "");
-            score = calculateScore(word,letterScore.get(word));
-        }return score;
+            score = calculateScore(letterScore);
+        }return score-1;
     }
 
 
-    //Based on hor or ver calls specific moveLegal method,after which list of words on board are added.//pot=5
+    //Might have bug that it will think if blank is can't make word or is in bad position makes it that it's bad word..
     public int checkIfMoveLegal(int row, int col, Tile[] letters, String dir) {
+        List<Tile> tileList = Arrays.asList(letters);
         int score = 0;
+        if(tileList.contains(Tile.BLANK)){
+            int index = tileList.indexOf(Tile.BLANK);
+            Tile newTile = checkMoveWithBlank(row,col,tileList,dir,false);
+            if(!newTile.equals(Tile.BLANK)){
+                letters[index] = newTile;
+            }else{
+                return score-1;
+            }
+        }
         if (dir.toLowerCase().equals("hor")) {
             score = moveHorLegal(row, col, letters);
-            return score > 0 ? score:0;
         } else if (dir.toLowerCase().equals("ver")) {
             score = moveVerLegal(row, col, letters);
-            return score > 0 ? score:0;
         }
         return score;
+    }
+
+    private Tile checkMoveWithBlank(int row, int col, List<Tile> tiles, String dir,boolean first){
+        int index = tiles.indexOf(Tile.BLANK);
+        for(Tile tile: allEnums){
+            tiles.set(index,tile);
+            if(!first){
+                if(checkIfMoveLegal(row,col,tiles.toArray(new Tile[tiles.size()]),dir) > 0 ){
+                    return tile;
+                }
+            }else{
+                if(checkIfFirstMoveLegal(row,col,tiles.toArray(new Tile[tiles.size()]),dir) > 0 ){
+                    return tile;
+                }
+            }
+        }return Tile.BLANK;
     }
 
 
@@ -274,51 +320,52 @@ public class Board {
 
     //if fields are empty horizontally it places it on temporary board and
     // calls methode to check if there is new word on board.
+//    private int moveHorLegal(int row, int col, Tile[] letters) {//wordsOnBoard
+//        HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
+//        int score = 0;
+//        boolean legal = false;
+//        String word = "";
+//        Board tempBoard = boardCopy();
+//        tempBoard.setMove(row,col,letters,"hor");
+//        int[] wordStart = horWordStart(row,col,tempBoard);
+//        int nRow = wordStart[0];
+//        int nCol = wordStart[1];
+//
+//        if(aroundNotEmptyHor(nRow,nCol,tempBoard)) {
+//            movesWords = horGetWord(nRow, nCol, tempBoard);
+//            word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+//            if (checker.checkWord(word)) {
+//                for (int i = nCol; i < DIM; i++) {
+//                    if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
+//                        legal = true;
+//                        score = score + calculateScore(word, movesWords.get(word));
+//                        break;
+//                    }
+//                }
+//
+//            }
+//            for (int i = nCol; i < DIM; i++) {
+//                if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
+//                    int[] vStart = verWordStart(nRow, i, tempBoard);
+//                    movesWords = verGetWord(vStart[0], vStart[1], tempBoard);
+//                    word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+//                    if (checker.checkWord(word)) {
+//                        legal = true;
+//                        score = score + calculateScore(word, movesWords.get(word));
+//                    }
+//                }
+//            }
+//        }
+//        return score;
+//    }
+
     private int moveHorLegal(int row, int col, Tile[] letters) {//wordsOnBoard
         HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
         int score = 0;
         boolean legal = false;
         String word = "";
         Board tempBoard = boardCopy();
-        tempBoard.setMove(row,col,letters,"hor");
-        int[] wordStart = horWordStart(row,col,tempBoard);
-        int nRow = wordStart[0];
-        int nCol = wordStart[1];
-
-        if(aroundNotEmptyHor(nRow,nCol,tempBoard)) {
-            movesWords = horGetWord(nRow, nCol, tempBoard);
-            word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-            if (checker.checkWord(word)) {
-                for (int i = nCol; i < DIM; i++) {
-                    if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
-                        legal = true;
-                        score = score + calculateScore(word, movesWords.get(word));
-                        break;
-                    }
-                }
-
-            }
-            for (int i = nCol; i < DIM; i++) {
-                if (topEmpty(nRow, i, tempBoard) || bottomEmpty(nRow, i, tempBoard)) {
-                    int[] vStart = verWordStart(nRow, i, tempBoard);
-                    movesWords = verGetWord(vStart[0], vStart[1], tempBoard);
-                    word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-                    if (checker.checkWord(word)) {
-                        legal = true;
-                        score = score + calculateScore(word, movesWords.get(word));
-                    }
-                }
-            }
-        }
-        return score;
-    }
-
-    private int moveHorLegalTest(int row, int col, Tile[] letters) {//wordsOnBoard
-        HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
-        int score = 0;
-        boolean legal = false;
-        String word = "";
-        Board tempBoard = boardCopy();
+        Board boardBefore = boardCopy();;
         tempBoard.setMove(row,col,letters,"hor");
         int[] wordStart = horWordStart(row,col,tempBoard);
         int nRow = wordStart[0];
@@ -326,18 +373,52 @@ public class Board {
         movesWords = horGetWord(nRow,nCol,tempBoard);
 
         word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-        for (int i=nCol;i<nCol+word.length();i++){//row
-            if(checkTopBottomNotEmpty(nRow,i,tempBoard)){
+        if(checker.checkWord(word)) {
+            for (int i = nCol; i < nCol + word.length(); i++) {//row
+                if (checkTopBottomNotEmpty(nRow, i, tempBoard)) {
+                    int[] newStart = verWordStart(nRow,i,tempBoard);
+                    HashMap<String,ArrayList<Integer>> newWords = verGetWord(newStart[0],newStart[1],tempBoard);
+                    String newWord = newWords.keySet().toString().replaceAll("[\\[\\]]", "");
+                    if(checker.checkWord(newWord)){
+                        //need to check if we can add word...;
+                        if(checkIfWordNotExistedBeforeVer(newStart[0],newStart[1],newWord.length(),boardBefore)){
+                            movesWords.putAll(newWords);
+                            legal = true;
+                        }else{
+                            legal = false;
+                        }
+                    }else{
+                        legal = false;
+                        break;
+                    }
 
+                }
             }
+        }else{
+            return score-1;
+            //illegal word....
         }
-
-
+        if(legal){
+            score = calculateScore(movesWords);
+        }
         return score;
     }
+    public boolean checkIfWordNotExistedBeforeVer(int row,int col,int size,Board tempBoard){
+        for(int i=row;i<row+size;i++){
+               if(tempBoard.isEmptyField(i,col)){
+                   return true;
+               }
+        }return false;
+    }
+
 
     private boolean checkTopBottomNotEmpty(int row,int col,Board tempBoard){
         if(!bottomEmpty(row,col,tempBoard) || !topEmpty(row,col,tempBoard)){
+            return true;
+        }return false;
+    }
+    private boolean checkLeftRightNotEmpty(int row,int col,Board tempBoard){
+        if(!leftEmpty(row,col,tempBoard) || !rightEmpty(row,col,tempBoard)){
             return true;
         }return false;
     }
@@ -376,44 +457,96 @@ public class Board {
         }return false;
     }
 
+//    private int moveVerLegal(int row, int col, Tile[] letters) {//wordsOnBoard
+//        HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
+//        int score = 0;
+//        boolean legal = false;
+//        String word = "";
+//        Board tempBoard = boardCopy();
+//        tempBoard.setMove(row,col,letters,"ver");
+//        int[] wordStart = verWordStart(row,col,tempBoard);
+//        int nRow = wordStart[0];
+//        int nCol = wordStart[1];
+//
+//        if(aroundNotEmptyVer(nRow,nCol,tempBoard)) {
+//            movesWords = verGetWord(nRow, nCol, tempBoard);
+//
+//            word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+//            if (checker.checkWord(word)) {
+//                for (int i = nRow; i < DIM; i++) {
+//                    if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
+//                        legal = true;
+//                        score = score + calculateScore(word, movesWords.get(word));
+//                        break;
+//                    }
+//                }
+//
+//            }
+//            for (int i = nRow; i < DIM; i++) {
+//                if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
+//                    int[] vStart = horWordStart(i, nCol, tempBoard);
+//                    movesWords = horGetWord(vStart[0], vStart[1], tempBoard);
+//                    word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+//                    if (checker.checkWord(word)) {
+//                        legal = true;
+//                        score = score + calculateScore(word, movesWords.get(word));
+//                    }
+//                }
+//            }
+//        }
+//        return score;
+//    }
+
     private int moveVerLegal(int row, int col, Tile[] letters) {//wordsOnBoard
         HashMap<String,ArrayList<Integer>> movesWords = new HashMap<String,ArrayList<Integer>>();
         int score = 0;
         boolean legal = false;
         String word = "";
         Board tempBoard = boardCopy();
+        Board boardBefore = boardCopy();
         tempBoard.setMove(row,col,letters,"ver");
         int[] wordStart = verWordStart(row,col,tempBoard);
         int nRow = wordStart[0];
         int nCol = wordStart[1];
+        movesWords = verGetWord(nRow,nCol,tempBoard);
 
-        if(aroundNotEmptyVer(nRow,nCol,tempBoard)) {
-            movesWords = verGetWord(nRow, nCol, tempBoard);
-
-            word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-            if (checker.checkWord(word)) {
-                for (int i = nRow; i < DIM; i++) {
-                    if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
+        word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
+        if(checker.checkWord(word)) {
+            for (int i = nRow; i < nRow + word.length(); i++) {//row
+                if (checkLeftRightNotEmpty(i, nCol, tempBoard)) {
+                    int[] newStart = horWordStart(i, nCol,tempBoard);
+                    HashMap<String,ArrayList<Integer>> newWords = horGetWord(newStart[0],newStart[1],tempBoard);
+                    String newWord = newWords.keySet().toString().replaceAll("[\\[\\]]", "");
+                    if(checker.checkWord(newWord)){
+                        //need to check if we can add word...;
+                        if(checkIfWordNotExistedBeforeHor(newStart[0],newStart[1],newWord.length(),boardBefore)){
+                            movesWords.putAll(newWords);
+                            legal = true;
+                        }
                         legal = true;
-                        score = score + calculateScore(word, movesWords.get(word));
+                    }else{
+                        legal = false;
                         break;
                     }
-                }
 
-            }
-            for (int i = nRow; i < DIM; i++) {
-                if (leftEmpty(i, nCol, tempBoard) || rightEmpty(i, nCol, tempBoard)) {
-                    int[] vStart = horWordStart(i, nCol, tempBoard);
-                    movesWords = horGetWord(vStart[0], vStart[1], tempBoard);
-                    word = movesWords.keySet().toString().replaceAll("[\\[\\]]", "");
-                    if (checker.checkWord(word)) {
-                        legal = true;
-                        score = score + calculateScore(word, movesWords.get(word));
-                    }
                 }
             }
+        }else{
+            return score-1;//Should be -1 here to show that word was invalid so i can skip on server..
+            //illegal word....
         }
+        if(legal){
+            score = calculateScore(movesWords);
+        }
+
         return score;
+    }
+    public boolean checkIfWordNotExistedBeforeHor(int row,int col,int size,Board tempBoard){
+        for(int i=col;i<col+size;i++){
+            if(tempBoard.isEmptyField(row,i)){
+                return true;
+            }
+        }return false;
     }
 
 
@@ -450,54 +583,86 @@ public class Board {
     }
 
     public boolean topEmpty(int row,int col,Board tempBoard){
-        if(col==0){
-            return true;
-        }
-        return tempBoard.isEmptyField(row,col-1);
-    }
-    public boolean bottomEmpty(int row,int col,Board tempBoard){
-        if(col==14){
-            return true;
-        }
-        return tempBoard.isEmptyField(row,col+1);
-    }
-    public boolean leftEmpty(int row,int col,Board tempBoard){
         if(row==0){
-            return true;
+            return false;
         }
         return tempBoard.isEmptyField(row-1,col);
     }
-    public boolean rightEmpty(int row,int col,Board tempBoard){
+    public boolean bottomEmpty(int row,int col,Board tempBoard){
         if(row==14){
-            return true;
+            return false;
         }
         return tempBoard.isEmptyField(row+1,col);
     }
-
-
-    private int calculateScore(String word,ArrayList<Integer> coords){
-        Tile[] tiles = stringToTile(word.split(""));
-        int score = 0;
-        int oldScore = 0;
-        for (int i=0;i<tiles.length;i++){
-            oldScore = score;
-            //System.out.println("Cord: " + coords.get(i));
-            score = oldScore + tiles[i].getValue() * getMultiplier(coords.get(i));
-
-        }return score;
+    public boolean leftEmpty(int row,int col,Board tempBoard){
+        if(col==0){
+            return false;
+        }
+        return tempBoard.isEmptyField(row,col-1);
+    }
+    public boolean rightEmpty(int row,int col,Board tempBoard){
+        if(col==14){
+            return false;
+        }
+        return tempBoard.isEmptyField(row,col+1);
     }
 
-    private int getMultiplier(int coord){
+
+//    private int calculateScore(String word,ArrayList<Integer> coords){
+//        Tile[] tiles = stringToTile(word.split(""));
+//        int score = 0;
+//        int oldScore = 0;
+//        for (int i=0;i<tiles.length;i++){
+//            oldScore = score;
+//            //System.out.println("Cord: " + coords.get(i));
+//            score = oldScore + tiles[i].getValue() * getMultiplier(coords.get(i));
+//
+//        }return score;
+//    }
+
+    private int calculateScore(HashMap<String,ArrayList<Integer>> wordsScore){
+        int score = 0;
+        for(Map.Entry set : wordsScore.entrySet()){
+            int wordScore = 0;
+            int wordMultiplier = 1;
+            String[] letters = set.getKey().toString().split("");
+            Tile[] tiles = stringToTile(letters);
+            for (int i=0;i<tiles.length;i++){
+                ArrayList<Integer> coords = wordsScore.get(set.getKey());
+                int tileMultiplier = getTileMultiplier(coords.get(i));
+                wordScore = wordScore + tiles[i].getValue() * tileMultiplier;
+                wordMultiplier = wordMultiplier * getWordMultiplier(coords.get(i));
+            }
+            score = score + wordScore * wordMultiplier;
+            System.out.println("Word: " + set.getKey().toString() + " Score: " + wordScore * wordMultiplier);
+
+        }
+        return score;
+
+    }
+
+    private int getTileMultiplier(int coord){
         int multiplier = 1;
-        if(DarkRedX3.contains(coord) || DarkBlueX3.contains(coord)){
+        if(DarkBlueX3.contains(coord)){
             multiplier = 3;
         }
-        if(PaleRedX2.contains(coord) || PaleBlueX2.contains(coord)){
+        if(PaleBlueX2.contains(coord)){
             multiplier = 2;
         }
         return multiplier;
 
     }
+    private int getWordMultiplier(int coord){
+        int multiplier = 1;
+        if(PaleRedX2.contains(coord) || coord == index(7,7)){
+            multiplier = 2;
+        }else if(DarkRedX3.contains(coord)){
+            multiplier = 3;
+        }
+        return multiplier;
+
+    }
+
 
 
 //    //Checks if fields horizontally in which word should go are empty.Doesn't check if letter is "-" aka empty.
@@ -922,6 +1087,8 @@ public class Board {
         }
         return result;
     }
+
+
 
 
 }

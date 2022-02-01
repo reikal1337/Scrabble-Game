@@ -6,16 +6,23 @@ import ss.lr.Exceptions.ServerUnavailableException;
 import ss.lr.Local.model.Board;
 
 import javax.swing.*;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.MaskFormatter;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 
 public class ClientGUI extends JFrame {
     private JPanel mainPanel;
@@ -139,7 +146,6 @@ public class ClientGUI extends JFrame {
 //            }
 //        });
 
-
     }
 
     private String[] getBoard(String board){
@@ -203,9 +209,12 @@ public class ClientGUI extends JFrame {
                     boardPanel.add(button);
                 }
             }
-            boardPanel.revalidate();
-            boardPanel.repaint();
+        frame.revalidate();
+//        frame.repaint();
+//        frame.pack();
     }
+
+    //for testing
     public void createBoard(){
         boardPanel.setLayout(new GridLayout(15, 15));
         for(int i=0; i<15; i++) {
@@ -236,8 +245,8 @@ public class ClientGUI extends JFrame {
             }
         }
         frame.revalidate();
-        frame.repaint();
-        frame.pack();
+        //frame.repaint();
+        //frame.pack();
     }
 
     public int index(int row, int col) {
@@ -317,6 +326,8 @@ public class ClientGUI extends JFrame {
 //        });
 //    }
 
+
+
     private void setUpActionListeners(){
 
         tileListener = new ActionListener() {
@@ -335,16 +346,29 @@ public class ClientGUI extends JFrame {
                     String ip = ipField.getText();
                     String port = portField.getText();
                     String name = nameField.getText();
-                    connectionInfo = new String[]{ip, port, name};
-                    //System.out.println("Ip: " + ip + " port: " +port+ " name: " + name);
-                    controller.setConnectionInfo(connectionInfo);
-                    try {
-                        controller.createConnection();
-                    } catch (ExitProgram ex) {
-                        ex.printStackTrace();
+                    if (name.matches("^[a-zA-Z0-9]*$") && name.length() <= 25 && name.length() >= 1) {
+                        if (stringIsInt(port)) {
+                            int portInt = Integer.parseInt(port);
+                            if (portInt >= 0 && portInt <= 65535) {
+                                try {
+                                    showMessage("Connecting to " + ip + ":" + port + ".....");
+                                    controller.createConnection(ip, port, name);
+                                } catch (ExitProgram ex) {
+                                    ex.printStackTrace();
+                                }
+                            } else {
+                                showError("Error: port has to be 0-65535");
+                            }
+                        }else{
+                            showError("Error: port has to be 0-65535");
+                        }
+                    }else{
+                        showError("Error: Name can't have any special character and need to be between 1-25 length");
                     }
+
+                }else{
+                    showError("Error: Ip, port and name fields can't be empty!");
                 }
-                //System.out.println("Wtf??");
             }
         });
 
@@ -365,14 +389,19 @@ public class ClientGUI extends JFrame {
                 }else if (horRadioButton.isSelected()){
                     direction = "hor";
                 }
-                String move = row + " " + col + " " + inputField.getText() + " " + direction;
-                setCoords("- -");
-                inputField.setText("");
-                try {
-                    controller.makeMove(move);
-                } catch (ServerUnavailableException ex) {
-                    ex.printStackTrace();
+                if(allowedLetterInput()){
+                    String move = row + " " + col + " " + inputField.getText() + " " + direction;
+                    setCoords("- -");
+                    inputField.setText("");
+                    try {
+                        controller.makeMove(move);
+                    } catch (ServerUnavailableException ex) {
+                        ex.printStackTrace();
+                    }
+                }else{
+                    showError("Error: You used letters that don't belong to you!");
                 }
+
             }
         });
 
@@ -381,9 +410,33 @@ public class ClientGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String result = e.getActionCommand();
                 String time = getTime();
-                showMessage(time + " "+ controller.getName()+": "+result);
+                showChat(time + " "+ controller.getName()+": "+result);
                 controller.doChat(time + " "+ controller.getName()+": "+result);
                 chatField.setText("");
+            }
+        });
+
+        dcButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.doExit();
+                setConnectionNo();
+
+            }
+        });
+
+        skipButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.doSkip();
+            }
+        });
+        swapButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(allowedLetterInput()){
+                    controller.doSwap(inputField.getText());
+                }
             }
         });
 
@@ -395,12 +448,47 @@ public class ClientGUI extends JFrame {
         return "["+time.format(timeFormatter)+"]";
     }
 
+    public boolean allowedLetterInput(){
+        ArrayList<String>allowedLetters = new ArrayList<String>();
+        String[] allowedLettersArray = tilesField.getText().toLowerCase().split(" ");
+        for(String letter: allowedLettersArray){
+            allowedLetters.add(letter);
+        }
+        String[] inputLetters = inputField.getText().toLowerCase().split("");
+        for(String letter : inputLetters){
+            if(allowedLetters.contains(letter)){
+                allowedLetters.remove(letter);
+            }else{
+            return false;
+            }
+        }return true;
+    }
 
+    //-----Formaters---
 
+    //Can't enter nothing..
+//    private void portFormater(){
+//        NumberFormat portFormat = NumberFormat.getIntegerInstance();
+//        portFormat.setGroupingUsed(false);
+//        NumberFormatter portFormatter = new NumberFormatter(portFormat);
+//        portFormatter.setValueClass(Integer.class);
+//        portFormatter.setMinimum(null);
+//        portFormatter.setMaximum(65535);
+//        portFormatter.setAllowsInvalid(false);
+//        DefaultFormatterFactory portFactory = new DefaultFormatterFactory(portFormatter);
+//        portField.setFormatterFactory(portFactory);
+//    }
+//
+//    private void fieldFormaters(){
+//        portFormater();
+//    }
+
+    //-----------------
 
 
     public void setupGUI(){
         setUpActionListeners();
+        //fieldFormaters();
         //createBoard(board);
         //createBoard();
         frame.add(mainPanel);
@@ -459,6 +547,27 @@ public class ClientGUI extends JFrame {
 
     public void showMessage(String message){
         System.out.println(message);
+    }
+    public void showChat(String message){
+        System.out.println(message);
+    }
+    public void showError(String message){
+        System.out.println(message);
+    }
+
+
+
+//    public void showMessage(String message){
+//        System.out.println("\033[1;37m"+message+"\u001B[0m");
+//    }
+//    public void showChat(String message){
+//        System.out.println(message);
+//    }
+//    public void showError(String message){
+//        System.out.println("\033[1;91m" + message + "\u001B[0m");
+//    }
+
+    private boolean stringIsInt(String word) {return word.matches("-?\\d+") ? true : false;
     }
 
 
