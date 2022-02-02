@@ -27,7 +27,7 @@ public class Board {
     //Do server discconect..
     //Complete skip button..++
     //Check if on border end good...Idk wtf I meant +- :D
-    //
+    //handle GUI in client
     //-------------------------Other day
     //Should fix exceptions ,too many
     //If I want colorfully console in GUi need to change to JTextPane and use Documentation.
@@ -55,20 +55,6 @@ public class Board {
 //
 //    private static ArrayList<Integer> wordsOnBoardCoord;
 
-
-    private static ArrayList<String> blackList;
-
-    //All words that can be used for game.
-    private static ArrayList<String> checkWords;
-
-
-    //Testing atrr
-    public static final String RESET = "\u001B[0m";
-    public static final String BLACK = "\u001B[30m";
-    public static final String RED = "\u001B[31m";
-    public static final String MAGENTA = "\u001B[35m";
-    public static final String BLUE = "\u001B[34m";
-    public static final String CYAN = "\u001B[36m";
 
     //Board fields.
     private Tile[][] field;
@@ -104,26 +90,6 @@ public class Board {
 
     }
 
-    //Purley for testing,just displays special tiles to check if cords are good.
-    public void setSpecialTilesOnBoard() {
-        for (int i = 0; i < DarkRedX3.size(); i++) {//R
-            setField(DarkRedX3.get(i), Tile.R);
-        }
-
-        for (int i = 0; i < PaleRedX2.size(); i++) {//R
-            setField(PaleRedX2.get(i), Tile.P);
-        }
-        //7 7 for star DarkBlueX3
-        setField(index(7,7), Tile.S);
-
-        for (int i = 0; i < DarkBlueX3.size(); i++) {//R
-            setField(DarkBlueX3.get(i), Tile.B);
-        }
-
-        for (int i = 0; i < PaleBlueX2.size(); i++) {//R
-            setField(PaleBlueX2.get(i), Tile.C);
-        }
-    }
 
     //Creates board,calls reset() method;
     public Board() {
@@ -138,11 +104,6 @@ public class Board {
         reset();
     }
 
-//    //returns wordsOnBoard array.
-//    public ArrayList<String> getWordsOnBoard() {
-//        return this.wordsOnBoard;
-//    }
-    //returns letterBag array.
     public ArrayList<Tile> getbag() {
         return this.letterBag;
     }
@@ -166,11 +127,6 @@ public class Board {
                 Tile.J, Tile.K, Tile.L, Tile.M, Tile.N, Tile.O, Tile.P, Tile.Q, Tile.R, Tile.S, Tile.T, Tile.U,
                 Tile.V, Tile.W, Tile.X, Tile.Y, Tile.Z, Tile.BLANK, Tile.EMPTY);
 
-//        Collections.addAll(letterBag,"a","a","a","a","a","a","a","a","a","b","b","c","c","d","d","d","d","e"
-//                ,"e","e","e","e","e","e","e","e","e","e","e","f","f","g","g","h","h","i","i","i","i","i","i","i","i"
-//                ,"j","j","k","k","l","l","l","l","m","m","n","n","n","n","n","n","o","o","o","o","o","o","o","o"
-//                ,"p","p","q","r","r","r","r","r","r","s","s","s","s","t","t","t","t","t","t","u","u","u","u","v"
-//                ,"v","w","w","x","y","y","z","0","0");
     }
 
     //Checks if field is valid,not used rn.
@@ -217,15 +173,6 @@ public class Board {
     }
 
 
-//    //Checks if first move is legal.
-//    public boolean checkIfFirstMoveLegal(int row, int col, Tile[] letters) {
-//        if(row == 7 && col == 7){
-//            String word = tileToString(letters);
-//            if(checkWord(word)){
-//                 return true;
-//            }return false;
-//        }return false;
-//    }
 
     //Might have bug that it will think if blank is can't make word or is in bad position makes it that it's bad word..
     public int checkIfFirstMoveLegal(int row, int col, Tile[] letters, String dir) {
@@ -301,7 +248,8 @@ public class Board {
 
     private Tile checkMoveWithBlank(int row, int col, List<Tile> tiles, String dir,boolean first){
         int index = tiles.indexOf(Tile.BLANK);
-        for(Tile tile: allEnums){
+        for(int i=0;i<26;i++){
+            Tile tile = allEnums.get(i);
             tiles.set(index,tile);
             if(!first){
                 if(checkIfMoveLegal(row,col,tiles.toArray(new Tile[tiles.size()]),dir) > 0 ){

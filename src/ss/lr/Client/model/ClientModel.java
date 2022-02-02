@@ -123,13 +123,18 @@ public class ClientModel implements ClientProtocol {
 
     }
 
+    @Override
+    public void doExit() throws ServerUnavailableException {
+        System.exit(0);
+    }
+
     public void doChat(String message) throws ServerUnavailableException {
         controller.sendMessage(ProtocolMessages.CHAT+ProtocolMessages.DELIMITER+message+ProtocolMessages.EOT);
     }
 
 
     @Override
-    public void doExit() throws ServerUnavailableException {
+    public void doDissconect() throws ServerUnavailableException {
         controller.sendMessage(ProtocolMessages.QUIT+ProtocolMessages.EOT);
         controller.closeConnection();
 

@@ -145,7 +145,6 @@ public class ClientGUI extends JFrame {
 //                }
 //            }
 //        });
-
     }
 
     private String[] getBoard(String board){
@@ -269,8 +268,8 @@ public class ClientGUI extends JFrame {
         }else{
             this.row = "-";
             this.col = "-";
-            rowLable.setText("Row: " + "-");
-            colLable.setText("Col: " + "-");
+            rowLable.setText("Row: -");
+            colLable.setText("Col: -");
         }
 
 
@@ -303,8 +302,8 @@ public class ClientGUI extends JFrame {
             }
         };
 
-        System.setOut(new PrintStream(out, true));
-        System.setErr(new PrintStream(out, true));
+        //System.setOut(new PrintStream(out, true));
+        //System.setErr(new PrintStream(out, true));
     }
     //----------------------------
 
@@ -365,7 +364,6 @@ public class ClientGUI extends JFrame {
                     }else{
                         showError("Error: Name can't have any special character and need to be between 1-25 length");
                     }
-
                 }else{
                     showError("Error: Ip, port and name fields can't be empty!");
                 }
@@ -419,7 +417,7 @@ public class ClientGUI extends JFrame {
         dcButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.doExit();
+                controller.doDissconect();
                 setConnectionNo();
 
             }
@@ -437,6 +435,13 @@ public class ClientGUI extends JFrame {
                 if(allowedLetterInput()){
                     controller.doSwap(inputField.getText());
                 }
+            }
+        });
+
+        exitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.doExit();
             }
         });
 

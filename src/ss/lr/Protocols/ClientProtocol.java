@@ -33,6 +33,8 @@ public interface ClientProtocol {
 
     public void doExit() throws ServerUnavailableException;
 
+    void doDissconect() throws ServerUnavailableException;
+
     //ERROR; <errorType>!
     public String handleError(String error)  throws ServerUnavailableException;
 

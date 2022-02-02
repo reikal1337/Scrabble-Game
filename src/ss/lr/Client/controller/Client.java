@@ -44,6 +44,9 @@ public class Client {
     public String getName(){
         return this.name;
     }
+    public void setName(String name){
+        this.name = name;
+    }
 
 
     //add skip with empty SWAP.
@@ -63,17 +66,17 @@ public class Client {
     }
 
     public void execute() throws ServerUnavailableException {
-        //work = new MyThreadWork();
         read = new MyThreadRead();
         read.start();
     }
 
     public String[] proccesInput(String input){
-        //view.showMessage("Input before: " + input);
-        String[] res = input.split(ProtocolMessages.DELIMITER);
-        res[res.length-1] = res[res.length-1].replaceAll(ProtocolMessages.EOT,"");
-        //view.showMessage("Input after size: " + res.length +"  " + res.toString());
-        return res;
+        if(input != null) {
+            String[] res = input.split(ProtocolMessages.DELIMITER);
+            res[res.length - 1] = res[res.length - 1].replaceAll(ProtocolMessages.EOT, "");
+            return res;
+        }
+        return null;
     }
 
     //-----View To model. instead of this do switch....
@@ -96,7 +99,18 @@ public class Client {
 
     public void doExit(){
         try {
+            if(out!=null){
+                doDissconect();
+            }
             model.doExit();
+        } catch (ServerUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void doDissconect(){
+        try {
+            model.doDissconect();
         } catch (ServerUnavailableException e) {
             e.printStackTrace();
         }
@@ -127,7 +141,6 @@ public class Client {
             new ServerUnavailableException("Unable to send message!");
         }
     }
-
 
 
 
@@ -217,6 +230,7 @@ public class Client {
                 addr = InetAddress.getByName(ip);
                 port = Integer.parseInt(sPort);
                 model.setName(name);
+                setName(name);
                 serverSock = new Socket(addr,port);
                 in = new BufferedReader(new InputStreamReader(serverSock.getInputStream()));
                 out = new BufferedWriter(new OutputStreamWriter(serverSock.getOutputStream()));
@@ -281,18 +295,18 @@ public class Client {
             try {
                 String ans = in.readLine();
                 //view.showMessage("Received: " + ans);
-                if(ans.equals(null)){
-                    throw new ServerUnavailableException("Could not read from server.");
+                if(ans == null){
+
                 }
-                //view.showMessage("Msg: " +ans);
                 return ans;
             } catch (IOException e) {
-                throw new ServerUnavailableException("Could not read from server.");
+                closeConnection();
+                gui.setConnectionNo();
             }
 
         }else{
             throw new ServerUnavailableException("Could not read from server.");
-        }
+        }return null;
     }
 
     /**
@@ -328,11 +342,11 @@ public class Client {
     public void closeConnection() {
         gui.showMessage("Closed connection!");
         try {
-            read.interrupt();
             connected = false;
             in.close();
             out.close();
             serverSock.close();
+            //read.interrupt();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -380,7 +394,7 @@ public class Client {
                 } catch (ServerUnavailableException e) {
                     e.printStackTrace();
                 }
-                if(!message.equals(null)){
+                if(message !=null ){
                         switch (message[0]){
                             case ProtocolMessages.ERROR:
                                 try {
