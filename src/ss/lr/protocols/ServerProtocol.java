@@ -1,51 +1,36 @@
 package ss.lr.protocols;
 
-import ss.lr.exceptions.ServerUnavailableException;
+import ss.lr.exceptions.ClientUnavailableException;
 import ss.lr.server.controller.ClientHandler;
 
 public interface ServerProtocol {
 
-    /**
-     * Returns a String to be sent as a response to a Client JOIN request,
-     * including the name of the hotel: WELCOME; <clientName>;<names>;<flags>*!
-     *
-     * @return String to be sent to client as a handshake response.
+    /***
+     Server protocols interface.
+     @author Lukas Reika s2596237.
      */
 
-    void handelHello(String name, ClientHandler client) throws ServerUnavailableException;
+    void handelHello(String name, ClientHandler client) throws ClientUnavailableException;
 
-    //handels MOVE;<position>;<letters>;<direction>!
-    public void handleMove(String[] commands,String name) throws ServerUnavailableException;
+    void handleMove(String[] commands, String name) throws ClientUnavailableException;
 
-    //Handels SWAP; <letters>!
+    void handleSwap(String word, String name) throws ClientUnavailableException;
 
-    void handleSwap(String word, String name) throws ServerUnavailableException;
+    void handleQuit(String name) throws ClientUnavailableException;
 
-    //Handles QUIT!
-    public void handleQuit(String name) throws ServerUnavailableException;
+    void handleReady(ClientHandler client) throws ClientUnavailableException;
 
-    //Handles READY!
-    //(optional#1, no lobby) READY;<Pnumber>!
-    //(optional#2, lobby)
-    public void handleReady(ClientHandler client) throws ServerUnavailableException;
+    void doError(String error, String name) throws ClientUnavailableException;
 
-    //ERROR; <errorType>!
-    public void doError(String error,String name) throws ServerUnavailableException;
+    void doGameStart() throws ClientUnavailableException;
 
-    //GAMESTART; <names>*!
-    public void doGameStart() throws ServerUnavailableException;
+    void doTiles(String name) throws ClientUnavailableException;
 
-    //TILES;<letters>!
-    public void doTiles(String name) throws ServerUnavailableException;
+    void doCurrent() throws ClientUnavailableException;
 
-    //CURRENT; <currentName>!
-    public void doCurrent() throws ServerUnavailableException;
+    void doUpdate(String name) throws ClientUnavailableException;
 
-    //UPDATE;<boardrows>;<names>;<points>!
-    public void doUpdate(String name) throws ServerUnavailableException;
+    void doGameOver(String endType) throws ClientUnavailableException;
 
-    //GAMEOVER;<endType>;<names>;<points>!
-    public void doGameOver(String endType) throws ServerUnavailableException;
-
-    void afterMove(String usedLetters, String name) throws ServerUnavailableException;
+    void afterMove(String usedLetters, String name) throws ClientUnavailableException;
 }

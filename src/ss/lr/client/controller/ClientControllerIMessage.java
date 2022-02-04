@@ -1,6 +1,12 @@
 package ss.lr.client.controller;
 
 public class ClientControllerIMessage {
+
+    /***
+     Messages used for controller,model GUI communication in client.
+     @author Lukas Reika s2596237.
+     */
+
     public static final String SWAP = "SWAP";
     public static final String SKIP = "SKIP";
     public static final String EXIT = "EXIT";

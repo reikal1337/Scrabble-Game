@@ -1,14 +1,11 @@
 package ss.lr.server.model;
 
-import ss.lr.exceptions.ExitProgram;
-import ss.lr.exceptions.ServerUnavailableException;
-import ss.lr.local.model.Board;
-import ss.lr.local.model.Tile;
+import ss.lr.exceptions.ClientUnavailableException;
 import ss.lr.protocols.ProtocolMessages;
 import ss.lr.protocols.ServerProtocol;
-import utils.WordChecker;
 import ss.lr.server.controller.ClientHandler;
 import ss.lr.server.view.ServerTUI;
+import utils.WordChecker;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -18,35 +15,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/***
+ Server works as a model. It establishes first connection,but after that make a client handler which resides as a controller.
+ Here new board is generated and game itself played.
+ @author Lukas Reika s2596237.
+ */
+
 public class Server implements Runnable, ServerProtocol {
-    /**
-     * The ServerSocket of this HotelServer
-     */
     private ServerSocket serverSock;
 
-    /**
-     * List of HotelClientHandlers, one for each connected client
-     */
-    private List<ClientHandler> clients;
-    private List<ClientHandler> readyClients;
+    private final List<ClientHandler> clients;
+    private final List<ClientHandler> readyClients;
 
-    /**
-     * Next client number, increasing for every new connection
-     */
     private int next_client_no;
-    private String ip;
+    private final String ip;
     private boolean gameStarted = false;
     private boolean firstMove = true;
     private int skipCount;
-    private WordChecker check;
+    private final WordChecker check;
     private Board board;
-    private ClientPlayer[] players;
+    private final ClientPlayer[] players;
     private int current;
 
-    /**
-     * The view of this HotelServer
-     */
-    private ServerTUI view;
+    private final ServerTUI view;
 
     public Server() {
         clients = new ArrayList<>();
@@ -59,10 +50,30 @@ public class Server implements Runnable, ServerProtocol {
         check = new WordChecker();
     }
 
+    public static void main(String[] args) {
+        Server server = new Server();
+        new Thread(server).start();
+    }
+
     public List<ClientHandler> getRdyClients() {
         return this.readyClients;
     }
 
+    public void removeClient(ClientHandler client) {
+        this.clients.remove(client);
+    }
+
+    public void removeRdyClient(ClientHandler client) {
+        this.readyClients.remove(client);
+    }
+
+    public void showMessage(String message) {
+        view.showMessage(message);
+    }
+
+    public void showError(String message) {
+        view.showError(message);
+    }
 
     @Override
     public void run() {
@@ -74,38 +85,36 @@ public class Server implements Runnable, ServerProtocol {
                     Socket sock = serverSock.accept();
                     String name = "Client "
                             + String.format("%02d", next_client_no++);
-                    view.showMessage("New client [" + name + "] connected!");
+                    showMessage("New client [" + name + "] connected!");
                     ClientHandler handler =
                             new ClientHandler(sock, this, name);
                     new Thread(handler).start();
                     clients.add(handler);
                 }
-            } catch (ExitProgram e) {
-                newSocket = false;
-                System.exit(0);
             } catch (IOException e) {
-                e.printStackTrace();
+                newSocket = false;
+                showError("Unable to establish connection with new client!");
             }
         }
 
     }
 
-    private void setup() throws ExitProgram {
+    private void setup() {
         serverSock = null;
         while (serverSock == null) {
             int port = view.getInt("Please enter server port: ");
 
             try {
-                view.showMessage("Attempting to open a socket at 127.0.0.1 "
+                showMessage("Attempting to open a socket at 127.0.0.1 "
                         + "on port " + port + "...");
                 serverSock = new ServerSocket(port, 0,
                         InetAddress.getByName(ip));
-                view.showMessage("Server started with port: " + port);
+                showMessage("Server started with port: " + port);
             } catch (IOException e) {
-                view.showMessage("ERROR: could not create a socket on "
+                showError("ERROR: could not create a socket on "
                         + "127.0.0.1" + " and port " + port + ".");
                 if (!view.getBoolean("Do you want to try again? yes/no")) {
-                    throw new ExitProgram("Server is being closed!");
+                    System.exit(0);
                 }
                 serverSock = null;
             }
@@ -113,8 +122,7 @@ public class Server implements Runnable, ServerProtocol {
 
     }
 
-
-    //Game-------------------
+    // Game methods-------------------
     private void setupGame() {
         board = new Board(check);
         ClientPlayer first = new ClientPlayer(readyClients.get(0).getName(), board.getRack());
@@ -127,7 +135,6 @@ public class Server implements Runnable, ServerProtocol {
 
     private boolean playAMove(String[] move) {
         if (!gameOver()) {
-            //update();
             if (current == 0) {
                 players[current].makeMove(board, move);
                 current++;
@@ -157,8 +164,8 @@ public class Server implements Runnable, ServerProtocol {
                 }
             }
         }
-        if (player1Minus == 0 && player2Minus == 0) {
-        } else if (player1Minus == 0) {
+
+        if (player1Minus == 0) {
             players[0].addScore(player2Minus);
             players[1].addScore(-player1Minus);
         } else if (player2Minus == 0) {
@@ -217,6 +224,9 @@ public class Server implements Runnable, ServerProtocol {
         return null;
     }
 
+
+    //-----------------
+
     private ClientPlayer getPlayerByName(String name) {
         for (ClientPlayer player : players) {
             if (player.getName().equals(name)) {
@@ -224,18 +234,6 @@ public class Server implements Runnable, ServerProtocol {
             }
         }
         return null;
-    }
-
-
-    //---------------
-
-
-    public void removeClient(ClientHandler client) {
-        this.clients.remove(client);
-    }
-
-    public void removeRdyClient(ClientHandler client) {
-        this.readyClients.remove(client);
     }
 
     public String namesInServer() {
@@ -271,8 +269,7 @@ public class Server implements Runnable, ServerProtocol {
     }
 
     @Override
-    public void handelHello(String name, ClientHandler client) throws ServerUnavailableException {
-        //view.showMessage("Name:"+name+" size of list" + clients.size());
+    public void handelHello(String name, ClientHandler client) throws ClientUnavailableException {
         if (getClientByName(name) == null) {
             client.setName(name);
             client.sendMessage(ProtocolMessages.WELCOME + ProtocolMessages.DELIMITER
@@ -282,10 +279,9 @@ public class Server implements Runnable, ServerProtocol {
         }
     }
 
-
     @Override
-    public void handleMove(String[] commands, String name) throws ServerUnavailableException {
-        int score = 0;
+    public void handleMove(String[] commands, String name) throws ClientUnavailableException {
+        int score;
         if (players[current].getName().equals(name)) {
             if (validMoveInput(commands)) {
                 String[] move = {commands[1], commands[2], commands[3], commands[4]};
@@ -303,7 +299,7 @@ public class Server implements Runnable, ServerProtocol {
                             players[current].addScore(score);
                             skipCount = 0;
                             if (!playAMove(move)) {
-                                doGameOver(getGameOutcome());//wtf don't remember
+                                doGameOver(getGameOutcome());
                             }
                             afterMove(commands[3], name);
                         } else if (score == -1) {
@@ -313,7 +309,7 @@ public class Server implements Runnable, ServerProtocol {
                         } else {
                             doError("1", name);
                         }
-                    } else if (firstMove) {
+                    } else {
                         score = board.checkIfFirstMoveLegal(row, col, tiles, direction);
                         if (score > 0) {
                             if (tiles.length == 7) {
@@ -325,7 +321,6 @@ public class Server implements Runnable, ServerProtocol {
                             playAMove(move);
                             afterMove(commands[3], name);
                         } else if (score == -1) {
-                            view.showError("Wtf loll");
                             skipTurn();
                             doCurrent();
                             doError("7", name);
@@ -338,47 +333,46 @@ public class Server implements Runnable, ServerProtocol {
                 doError("5", name);
             }
         } else {
-            view.showError("Here!!");
             doError("8", name);
         }
     }
 
-    public void doSkip(String name){
+    public void doSkip(String name) throws ClientUnavailableException {
         if (players[current].getName().equals(name)) {
             skipCount++;
             skipTurn();
             try {
                 doCurrent();
-            } catch (ServerUnavailableException e) {
-
+            } catch (ClientUnavailableException e) {
+                showError("Unable to reach Client!");
             }
-        }else {
+        } else {
             try {
                 doError("8", name);
-            } catch (ServerUnavailableException e) {
-                view.showError("Unable to reach Client!");
+            } catch (ClientUnavailableException e) {
+                showError("Unable to reach Client!");
             }
         }
     }
 
     @Override
-    public void handleSwap(String word, String name) throws ServerUnavailableException {
+    public void handleSwap(String word, String name) throws ClientUnavailableException {
         if (players[current].getName().equals(name)) {
             if (board.getBag().size() != 0) {
                 ClientPlayer player = getPlayerByName(name);
                 String[] letters = word.split("");
-                    Tile[] replacedRack = board.stringToTile(letters);
-                    assert player != null;////////////////////////////////
-                    if (inPlayersRack(replacedRack, player)) {
-                        ArrayList<Tile> oldRack = player.getRack();
-                        ArrayList<Tile> newRack = board.removeFromRackAndFill(replacedRack, oldRack);
-                        player.setRack(newRack);
-                        skipTurn();
-                        doCurrent();
-                        doTiles(name);
-                    } else {
-                        doError("2", name);
-                    }
+                Tile[] replacedRack = board.stringToTile(letters);
+
+                if (player != null && inPlayersRack(replacedRack, player)) {
+                    ArrayList<Tile> oldRack = player.getRack();
+                    ArrayList<Tile> newRack = board.removeFromRackAndFill(replacedRack, oldRack);
+                    player.setRack(newRack);
+                    skipTurn();
+                    doCurrent();
+                    doTiles(name);
+                } else {
+                    doError("2", name);
+                }
             } else {
                 doError("3", name);
             }
@@ -387,13 +381,12 @@ public class Server implements Runnable, ServerProtocol {
         }
     }
 
-    private void refreshRack(String word, String name) throws ServerUnavailableException {
+    private void refreshRack(String word, String name) throws ClientUnavailableException {
         if (board.getBag().size() != 0) {
             ClientPlayer player = getPlayerByName(name);
             String[] letters = word.split("");
             Tile[] replacedRack = board.stringToTile(letters);
-            assert player != null;////////////////////////////////
-            if (inPlayersRack(replacedRack, player)) {
+            if (player != null && inPlayersRack(replacedRack, player)) {
                 ArrayList<Tile> oldRack = player.getRack();
                 ArrayList<Tile> newRack = board.removeFromRackAndFill(replacedRack, oldRack);
                 player.setRack(newRack);
@@ -405,102 +398,98 @@ public class Server implements Runnable, ServerProtocol {
         }
     }
 
+    @Override
+    public void handleQuit(String name) throws ClientUnavailableException {
+        Objects.requireNonNull(getClientByName(name)).shutdown();
+        doGameOver("STOP");
+    }
 
-        @Override
-        public void handleQuit (String name) throws ServerUnavailableException {
-            Objects.requireNonNull(getClientByName(name)).shutdown();
-            doGameOver("STOP");
+    @Override
+    public void handleReady(ClientHandler client) throws ClientUnavailableException {
+        if (!readyClients.contains(client)) {
+            readyClients.add(client);
         }
-
-        @Override
-        public void handleReady (ClientHandler client) throws ServerUnavailableException {
-            if (!readyClients.contains(client)) {
-                readyClients.add(client);
-            }
-            if (readyClients.size() == 2) {
-                doGameStart();
-            }
+        if (readyClients.size() == 2) {
+            doGameStart();
         }
+    }
 
-        @Override
-        public void doError (String error, String name) throws ServerUnavailableException {
-            getClientByName(name).sendMessage(ProtocolMessages.ERROR + ProtocolMessages.DELIMITER +
-                    error + ProtocolMessages.EOT);
+    @Override
+    public void doError(String error, String name) throws ClientUnavailableException {
+        Objects.requireNonNull(getClientByName(name)).sendMessage(ProtocolMessages.ERROR + ProtocolMessages.DELIMITER +
+                error + ProtocolMessages.EOT);
+    }
+
+    @Override
+    public void doGameStart() throws ClientUnavailableException {
+        setupGame();
+        for (ClientHandler client : readyClients) {
+            client.sendMessage(ProtocolMessages.GAMESTART + ProtocolMessages.DELIMITER + players[0].getName() +
+                    ProtocolMessages.DELIMITER + players[1].getName() + ProtocolMessages.EOT);
+            doUpdate(client.getName());
+            doTiles(client.getName());
+            doCurrent();
         }
+    }
 
-        @Override
-        public void doGameStart () throws ServerUnavailableException {
-            setupGame();
-            for (ClientHandler client : readyClients) {
-                client.sendMessage(ProtocolMessages.GAMESTART + ProtocolMessages.DELIMITER + players[0].getName() +
-                        ProtocolMessages.DELIMITER + players[1].getName() + ProtocolMessages.EOT);
-                doUpdate(client.getName());
-                doTiles(client.getName());
-                doCurrent();
-            }
-        }
-
-        @Override
-        public void doTiles (String name) throws ServerUnavailableException {
-            ClientPlayer player = getPlayerByName(name);
+    @Override
+    public void doTiles(String name) throws ClientUnavailableException {
+        ClientPlayer player = getPlayerByName(name);
+        if (player != null) {
             ClientHandler client = getClientByNameRdy(name);
-            String rack = board.tileToString(player.getRack());
-            client.sendMessage(ProtocolMessages.TILES + ProtocolMessages.DELIMITER + rack + ProtocolMessages.EOT);
-        }
-
-        @Override
-        public void doCurrent () throws ServerUnavailableException {
-            for (ClientHandler client : readyClients) {
-                client.sendMessage(ProtocolMessages.CURRENT + ProtocolMessages.DELIMITER +
-                        players[current].getName() + ProtocolMessages.EOT);
+            if (client != null) {
+                String rack = board.tileToString(player.getRack());
+                client.sendMessage(ProtocolMessages.TILES + ProtocolMessages.DELIMITER + rack + ProtocolMessages.EOT);
             }
+        }
+    }
 
+    @Override
+    public void doCurrent() throws ClientUnavailableException {
+        for (ClientHandler client : readyClients) {
+            client.sendMessage(ProtocolMessages.CURRENT + ProtocolMessages.DELIMITER +
+                    players[current].getName() + ProtocolMessages.EOT);
         }
 
-        public void doChat (String message, String name){
-            for (ClientHandler client : clients) {
-                if (!client.getName().equals(name)) {
-                    try {
-                        client.sendMessage(ProtocolMessages.CHAT + ProtocolMessages.DELIMITER + message + ProtocolMessages.EOT);
-                    } catch (ServerUnavailableException e) {
-                        new ServerUnavailableException("unable to send messages!");
-                    }
-                }
+    }
+
+    public void doChat(String message, String name) throws ClientUnavailableException {
+        for (ClientHandler client : clients) {
+            if (!client.getName().equals(name)) {
+                client.sendMessage(ProtocolMessages.CHAT + ProtocolMessages.DELIMITER + message + ProtocolMessages.EOT);
             }
-
         }
 
-        @Override
-        public void doUpdate (String name) throws ServerUnavailableException {//name1,name2,score1,score2
-            ClientHandler client = getClientByNameRdy(name);
+    }
+
+    @Override
+    public void doUpdate(String name) throws ClientUnavailableException {//name1,name2,score1,score2
+        ClientHandler client = getClientByNameRdy(name);
+        if (client != null) {
             client.sendMessage(ProtocolMessages.UPDATE + ProtocolMessages.DELIMITER + view.getBoard(board) + ProtocolMessages.DELIMITER + players[0].getName() +
                     ProtocolMessages.DELIMITER + players[1].getName() + ProtocolMessages.DELIMITER + players[0].getScore() +
                     ProtocolMessages.DELIMITER + players[1].getScore() + ProtocolMessages.EOT);
         }
+    }
 
-        @Override
-        public void doGameOver (String endType) throws ServerUnavailableException {
-            for (ClientHandler client : readyClients) {
-                client.sendMessage(ProtocolMessages.GAMEOVER + ProtocolMessages.DELIMITER + endType + ProtocolMessages.DELIMITER + players[0].getName() +
-                        ProtocolMessages.DELIMITER + players[1].getName() + ProtocolMessages.DELIMITER + players[0].getScore() +
-                        ProtocolMessages.DELIMITER + players[1].getScore() + ProtocolMessages.EOT);
-            }
-
-        }
-
-        @Override
-        public void afterMove (String usedLetters, String name) throws ServerUnavailableException {
-            refreshRack(usedLetters, name);
-            for (ClientHandler client : readyClients) {
-                doUpdate(client.getName());
-                doTiles(client.getName());
-            }
-            doCurrent();
-        }
-
-        public static void main (String[]args){
-            Server server = new Server();
-            new Thread(server).start();
+    @Override
+    public void doGameOver(String endType) throws ClientUnavailableException {
+        for (ClientHandler client : readyClients) {
+            client.sendMessage(ProtocolMessages.GAMEOVER + ProtocolMessages.DELIMITER + endType + ProtocolMessages.DELIMITER + players[0].getName() +
+                    ProtocolMessages.DELIMITER + players[1].getName() + ProtocolMessages.DELIMITER + players[0].getScore() +
+                    ProtocolMessages.DELIMITER + players[1].getScore() + ProtocolMessages.EOT);
         }
 
     }
+
+    @Override
+    public void afterMove(String usedLetters, String name) throws ClientUnavailableException {
+        refreshRack(usedLetters, name);
+        for (ClientHandler client : readyClients) {
+            doUpdate(client.getName());
+            doTiles(client.getName());
+        }
+        doCurrent();
+    }
+
+}

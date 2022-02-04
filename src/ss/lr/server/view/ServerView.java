@@ -1,6 +1,11 @@
 package ss.lr.server.view;
 
-import ss.lr.local.model.Board;
+import ss.lr.server.model.Board;
+
+/***
+ Servers view interface.
+ @author Lukas Reika s2596237.
+ */
 
 public interface ServerView {
 
@@ -9,8 +14,9 @@ public interface ServerView {
      *
      * @param message the message to write to the standard output.
      */
-    public void showMessage(String message);
-    public void showError(String message);
+    void showMessage(String message);
+
+    void showError(String message);
 
     /**
      * Prints the question and asks the user to input a String.
@@ -18,7 +24,7 @@ public interface ServerView {
      * @param question The question to show to the user
      * @return The user input as a String
      */
-    public String getString(String question);
+    String getString(String question);
 
     /**
      * Prints the question and asks the user to input an Integer.
@@ -26,7 +32,7 @@ public interface ServerView {
      * @param question The question to show to the user
      * @return The written Integer.
      */
-    public int getInt(String question);
+    int getInt(String question);
 
     /**
      * Prints the question and asks the user for a yes/no answer.
@@ -34,7 +40,9 @@ public interface ServerView {
      * @param question The question to show to the user
      * @return The user input as boolean.
      */
-    public boolean getBoolean(String question);
-    public String getBoard(Board board);
+    boolean getBoolean(String question);
+
+    //get bag representation of board
+    String getBoard(Board board);
 
 }

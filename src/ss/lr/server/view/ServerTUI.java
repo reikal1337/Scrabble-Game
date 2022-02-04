@@ -1,26 +1,25 @@
 package ss.lr.server.view;
 
-import ss.lr.local.model.Board;
+import ss.lr.server.model.Board;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
-public class ServerTUI implements ServerView{
+/***
+ Simple servers TUI.
+ @author Lukas Reika s2596237.
+ */
 
+public class ServerTUI implements ServerView {
 
-    /** The PrintWriter to write messages to */
-    private PrintWriter console;
-    private BufferedReader consoleReader;
     private static final int DIM = 15;
     private static final String RED_BOLD = "\033[1;31m";
     private static final String RESET = "\033[0m";
-    // private static final String DELIM = "     ";
+    private final PrintWriter console;
+    private final BufferedReader consoleReader;
 
-    /**
-     * Constructs a new HotelServerTUI. Initializes the console.
-     */
     public ServerTUI() {
         console = new PrintWriter(System.out, true);
         consoleReader = new BufferedReader(new InputStreamReader(System.in));
@@ -28,12 +27,13 @@ public class ServerTUI implements ServerView{
 
     @Override
     public void showMessage(String message) {
-        if(message != null) {
+        if (message != null) {
             console.println(message);
         }
     }
-    public void showError(String message){
-        if(message != null) {
+
+    public void showError(String message) {
+        if (message != null) {
             console.println(RED_BOLD + message + RESET);
         }
     }
@@ -41,7 +41,7 @@ public class ServerTUI implements ServerView{
     @Override
     public String getString(String question) {
         String result = "";
-        if(!question.equals(null)) {
+        if (!question.equals(null)) {
             console.println(question);
             try {
                 result = consoleReader.readLine();
@@ -56,7 +56,7 @@ public class ServerTUI implements ServerView{
     public int getInt(String question) {
         int res = 0;
         boolean wrong = true;
-        while(wrong) {
+        while (wrong) {
             String ans = getString(question);
             if (stringIsInt(ans)) {
                 res = Integer.parseInt(ans);
@@ -69,16 +69,17 @@ public class ServerTUI implements ServerView{
     @Override
     public boolean getBoolean(String question) {
         boolean wrong = true;
-        while(wrong) {
+        while (wrong) {
             String ans = getString(question);
-            if (ans.toLowerCase().equals("yes")) {
+            if (ans.equalsIgnoreCase("yes")) {
                 wrong = false;
                 return true;
-            } else if (ans.toLowerCase().equals("no")) {
+            } else if (ans.equalsIgnoreCase("no")) {
                 wrong = false;
                 return false;
             }
-        }return false;
+        }
+        return false;
     }
 
     @Override
@@ -87,25 +88,25 @@ public class ServerTUI implements ServerView{
         for (int i = 0; i < DIM; i++) {
             String row = "";
             for (int j = 0; j < DIM; j++) {
-                row = row  + board.getField(i, j) ;
+                row = row + board.getField(i, j);
                 if (j < DIM - 1) {
                     row = row + ",";
                 }
             }
-            printBoard = printBoard + row ;
+            printBoard = printBoard + row;
             if (i < DIM - 1) {
-                printBoard = printBoard + "," ;
+                printBoard = printBoard + ",";
             }
         }
         return printBoard;
     }
 
     public boolean stringIsInt(String word) {
-        return word.matches("-?\\d+") ? true : false;
+        return word.matches("-?\\d+");
     }
 
     public boolean stringIsLetters(String word) {
-        return word.matches("[a-zA-Z]+") ? true : false;
+        return word.matches("[a-zA-Z]+");
     }
 
 }

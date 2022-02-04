@@ -1,6 +1,9 @@
 package utils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class WordChecker {
@@ -13,6 +16,7 @@ public class WordChecker {
         checkWords = new ArrayList<String>();
         papulateCheckWords();
     }
+
     //Before 556982  After 279496
     private void papulateCheckWords() {
         String line;
@@ -54,10 +58,7 @@ public class WordChecker {
 
     //checks if word exists in checkWords array.
     public boolean checkWord(String word) {
-        if (checkWords.contains(word.toUpperCase())) {
-            return true;
-        }
-        return false;
+        return checkWords.contains(word.toUpperCase());
     }
 
 }

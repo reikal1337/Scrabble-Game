@@ -1,13 +1,13 @@
 package ss.lr.protocols;
 
 public class ProtocolMessages {
-    /**
-     * Delimiter used to separate arguments sent over the network.
+
+    /***
+     *All messages used to communicate between server and client!
+     *@author Lukas Reika s2596237.
      */
+
     public static final String DELIMITER = ";";
-    /**
-     * Sent as last line in a multi-line response to indicate the end of the text.
-     */
     public static final String EOT = "!";
 
     //Client protocols
@@ -28,9 +28,6 @@ public class ProtocolMessages {
     public static final String CURRENT = "CURRENT";
     public static final String UPDATE = "UPDATE";
     public static final String GAMEOVER = "GAMEOVER";
-
-
-
 
 
 }
