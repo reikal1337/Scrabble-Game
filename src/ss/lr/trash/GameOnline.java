@@ -1,9 +1,9 @@
 package ss.lr.trash;
 
 
-import ss.lr.Local.model.Board;
-import ss.lr.Server.model.ClientPlayer;
-import ss.lr.Local.model.Tile;
+import ss.lr.local.model.Board;
+import ss.lr.server.model.ClientPlayer;
+import ss.lr.local.model.Tile;
 
 import java.util.ArrayList;
 
