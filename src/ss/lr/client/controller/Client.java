@@ -47,7 +47,7 @@ public class Client {
     }
 
     public void execute() throws ServerUnavailableException {
-        MyThreadRead read = new MyThreadRead();
+        ListeningThread read = new ListeningThread();
         read.start();
     }
 
@@ -61,36 +61,36 @@ public class Client {
     }
 
     public void handleGUIModel(String command) {
-        String[] info = command.split(ClientControllerIMessage.BREAK);
+        String[] info = command.split(ModuleControllerIMessage.BREAK);
         try {
             switch (info[0]) {
-                case ClientControllerIMessage.SWAP:
+                case ModuleControllerIMessage.SWAP:
                     model.doSwap(info[1]);
                     break;
-                case ClientControllerIMessage.SKIP:
+                case ModuleControllerIMessage.SKIP:
                     model.doSwap();
                     break;
-                case ClientControllerIMessage.EXIT:
+                case ModuleControllerIMessage.EXIT:
                     if (out != null) {
                         model.doDissconect();
                     }
                     model.doExit();
                     break;
-                case ClientControllerIMessage.DISCONNECT:
+                case ModuleControllerIMessage.DISCONNECT:
                     model.doDissconect();
                     break;
-                case ClientControllerIMessage.ERROR:
+                case ModuleControllerIMessage.ERROR:
                     gui.showError(info[1]);
                     break;
-                case ClientControllerIMessage.READY:
+                case ModuleControllerIMessage.READY:
                     model.doReady();
                     break;
-                case ClientControllerIMessage.MOVE:
+                case ModuleControllerIMessage.MOVE:
                     String[] move = info[1].split(" ");
                     gui.showMessage("Lol");
                     model.doMove(move);
                     break;
-                case ClientControllerIMessage.CHAT:
+                case ModuleControllerIMessage.CHAT:
                     model.doChat(info[1]);
                     break;
             }
@@ -203,7 +203,7 @@ public class Client {
     private void start() {
     }
 
-    public class MyThreadRead extends Thread {
+    public class ListeningThread extends Thread {
         public void run() {
             while (connected) {
                 String[] message = new String[0];

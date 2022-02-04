@@ -1,6 +1,6 @@
 package ss.lr.client.controller;
 
-public class ClientControllerIMessage {
+public class ModuleControllerIMessage {
 
     /***
      Messages used for controller,model GUI communication in client.

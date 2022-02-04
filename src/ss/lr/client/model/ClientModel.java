@@ -1,7 +1,7 @@
 package ss.lr.client.model;
 
 import ss.lr.client.controller.Client;
-import ss.lr.client.controller.ClientControllerIMessage;
+import ss.lr.client.controller.ModuleControllerIMessage;
 import ss.lr.exceptions.ProtocolException;
 import ss.lr.exceptions.ServerUnavailableException;
 import ss.lr.protocols.ClientProtocol;
@@ -40,7 +40,7 @@ public class ClientModel implements ClientProtocol {
             if (!ans[0].equals(ProtocolMessages.ERROR)) {
                 throw new ProtocolException("Incorrect handshake!!");
             } else {
-                controller.handleGUIModel(ClientControllerIMessage.ERROR + ClientControllerIMessage.BREAK
+                controller.handleGUIModel(ModuleControllerIMessage.ERROR + ModuleControllerIMessage.BREAK
                         + handleError(ans[1]));
             }
         } else {

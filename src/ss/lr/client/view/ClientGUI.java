@@ -1,7 +1,7 @@
 package ss.lr.client.view;
 
 import ss.lr.client.controller.Client;
-import ss.lr.client.controller.ClientControllerIMessage;
+import ss.lr.client.controller.ModuleControllerIMessage;
 import ss.lr.server.model.Board;
 
 import javax.swing.*;
@@ -337,7 +337,7 @@ public class ClientGUI extends JFrame {
         readyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.handleGUIModel(ClientControllerIMessage.READY);
+                controller.handleGUIModel(ModuleControllerIMessage.READY);
             }
         });
 
@@ -354,7 +354,7 @@ public class ClientGUI extends JFrame {
                     String move = row + " " + col + " " + inputField.getText() + " " + direction;
                     setCoords("- -");
                     inputField.setText("");
-                    controller.handleGUIModel(ClientControllerIMessage.MOVE + ClientControllerIMessage.BREAK
+                    controller.handleGUIModel(ModuleControllerIMessage.MOVE + ModuleControllerIMessage.BREAK
                             + move);
                 } else {
                     showError("Error: You used letters that don't belong to you!");
@@ -369,7 +369,7 @@ public class ClientGUI extends JFrame {
                 String result = e.getActionCommand();
                 String time = getTime();
                 showChat(time + " " + controller.getName() + ": " + result);
-                controller.handleGUIModel(ClientControllerIMessage.CHAT + ClientControllerIMessage.BREAK
+                controller.handleGUIModel(ModuleControllerIMessage.CHAT + ModuleControllerIMessage.BREAK
                         + time + " " + controller.getName() + ": " + result);
                 chatField.setText("");
             }
@@ -378,7 +378,7 @@ public class ClientGUI extends JFrame {
         dcButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.handleGUIModel(ClientControllerIMessage.DISCONNECT);
+                controller.handleGUIModel(ModuleControllerIMessage.DISCONNECT);
                 setConnectionNo();
 
             }
@@ -387,14 +387,14 @@ public class ClientGUI extends JFrame {
         skipButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.handleGUIModel(ClientControllerIMessage.SKIP);
+                controller.handleGUIModel(ModuleControllerIMessage.SKIP);
             }
         });
         swapButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (allowedLetterInput()) {
-                    controller.handleGUIModel(ClientControllerIMessage.SWAP + ClientControllerIMessage.BREAK
+                    controller.handleGUIModel(ModuleControllerIMessage.SWAP + ModuleControllerIMessage.BREAK
                             + inputField.getText());
                 }
             }
@@ -403,7 +403,7 @@ public class ClientGUI extends JFrame {
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.handleGUIModel(ClientControllerIMessage.EXIT);
+                controller.handleGUIModel(ModuleControllerIMessage.EXIT);
             }
         });
 
