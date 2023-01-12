@@ -18,7 +18,7 @@ import java.util.Collections;
 /***
  This is view part of client,it handles all view and represents incoming data to GUI.
  It also validates input by disabling and enabling buttons.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public class ClientGUI extends JFrame {

@@ -4,7 +4,7 @@ public class ProtocolMessages {
 
     /***
      *All messages used to communicate between server and client!
-     *@author Lukas Reika s2596237.
+     *@author reikal951@gmail.com.
      */
 
     public static final String DELIMITER = ";";

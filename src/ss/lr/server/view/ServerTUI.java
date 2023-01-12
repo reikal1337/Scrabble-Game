@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 
 /***
  Simple servers TUI.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public class ServerTUI implements ServerView {

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /***
  Simple player to mostly track score.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public class ClientPlayer {

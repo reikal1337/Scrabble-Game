@@ -3,7 +3,7 @@ package ss.lr.server.model;
 /***
  Simple Enum to represent tiles,each enum has named and value,value is its score.
  Added name for tiles like BLANK and EMPTY.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public enum Tile {

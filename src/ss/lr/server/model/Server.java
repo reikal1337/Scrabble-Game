@@ -18,7 +18,7 @@ import java.util.Objects;
 /***
  Server works as a model. It establishes first connection,but after that make a client handler which resides as a controller.
  Here new board is generated and game itself played.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public class Server implements Runnable, ServerProtocol {

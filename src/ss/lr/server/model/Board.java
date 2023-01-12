@@ -9,7 +9,7 @@ import java.util.*;
  board and maintaining it,here lies almost all scrabble game logic.
  In here you can generate racks,make bag of letters and generate special tiles.
  Also, you can check if move is legal or set the move.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 

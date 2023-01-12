@@ -11,7 +11,7 @@ import java.net.Socket;
 
 /***
  As soon as it is created it works as a controller for communication between server and client.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public class ClientHandler implements Runnable {

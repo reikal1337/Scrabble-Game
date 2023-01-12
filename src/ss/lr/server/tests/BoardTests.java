@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /***
  Board tests.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public class BoardTests {

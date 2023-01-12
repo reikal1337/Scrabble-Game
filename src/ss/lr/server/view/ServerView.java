@@ -4,7 +4,7 @@ import ss.lr.server.model.Board;
 
 /***
  Servers view interface.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 public interface ServerView {

@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
 
 /***
  Client works as I controler,it connects to the server and manages connection between model,GUI and server.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 

@@ -7,7 +7,7 @@ public interface ServerProtocol {
 
     /***
      Server protocols interface.
-     @author Lukas Reika s2596237.
+     @author reikal951@gmail.com.
      */
 
     void handelHello(String name, ClientHandler client) throws ClientUnavailableException;

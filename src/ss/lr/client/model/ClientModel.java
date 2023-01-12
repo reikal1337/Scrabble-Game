@@ -11,7 +11,7 @@ import ss.lr.protocols.ProtocolMessages;
 /***
  This is where input is checked,messages to server are constructed,main logic of client.
  It is not much as everything is done on server.
- @author Lukas Reika s2596237.
+ @author reikal951@gmail.com.
  */
 
 

@@ -8,7 +8,7 @@ public interface ClientProtocol {
 
     /***
      Clients protocols interface.
-     @author Lukas Reika s2596237.
+     @author reikal951@gmail.com.
      */
     String handleHello() throws ServerUnavailableException, ProtocolException;
 
